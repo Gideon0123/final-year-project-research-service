@@ -3,20 +3,18 @@ package com.example.RESEARCH_SERVICE.entity;
 import com.example.RESEARCH_SERVICE.enums.ResearchStatus;
 import com.example.RESEARCH_SERVICE.enums.ResearchVisibility;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "research_papers")
-public class ResearchPaper {
+public class ResearchPaper extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,6 +34,21 @@ public class ResearchPaper {
 
     private String authorEmail;
 
+    private String institution;
+
+    private String faculty;
+
+    private String department;
+
+    private String fileName;
+
+    private String contentType;
+
+    private String storageKey;
+
+    private Long fileSize;
+
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private ResearchCategory category;
@@ -48,11 +61,17 @@ public class ResearchPaper {
 
     private Integer versionNumber;
 
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
     private LocalDateTime submittedAt;
 
     private LocalDateTime publishedAt;
+
+    private Long reviewerId;
+
+    private LocalDateTime reviewAssignedAt;
+
+    private LocalDateTime reviewCompletedAt;
+
+    private Long downloadCount;
+
+    private Long viewCount;
 }
