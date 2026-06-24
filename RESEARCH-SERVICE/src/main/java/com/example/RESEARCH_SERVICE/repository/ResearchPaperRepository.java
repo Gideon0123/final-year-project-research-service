@@ -9,14 +9,14 @@ import org.springframework.stereotype.Repository;
 
 import java.awt.print.Pageable;
 
-@Repository
-public interface ResearchPaperRepository
-        extends JpaRepository<ResearchPaper, Long>,
-        JpaSpecificationExecutor<ResearchPaper> {
-
-    Page<ResearchPaper> findByStatus(ResearchStatus status, Pageable pageable);
-
-    Page<ResearchPaper> findByCategoryId(Long categoryId, Pageable pageable);
-
-    boolean existsByTitleIgnoreCase(String title);
-}
+//@Repository
+//public interface ResearchPaperRepository
+//        extends JpaRepository<ResearchPaper, Long>,
+//        JpaSpecificationExecutor<ResearchPaper> {
+//
+//    Page<ResearchPaper> findByStatus(ResearchStatus status, Pageable pageable);
+//
+//    Page<ResearchPaper> findByCategoryId(Long categoryId, Pageable pageable);
+//
+//    boolean existsByTitleIgnoreCase(String title);
+//}

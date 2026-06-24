@@ -1,4 +1,4 @@
-package com.example.RESEARCH_SERVICE.dto;
+package com.example.RESEARCH_SERVICE.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

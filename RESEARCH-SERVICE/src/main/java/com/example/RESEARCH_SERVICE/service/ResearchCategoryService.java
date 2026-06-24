@@ -2,7 +2,7 @@ package com.example.RESEARCH_SERVICE.service;
 
 import com.example.RESEARCH_SERVICE.dto.CategoryResponse;
 import com.example.RESEARCH_SERVICE.dto.CreateCategoryRequest;
-import com.example.RESEARCH_SERVICE.dto.CurrentUser;
+import com.example.RESEARCH_SERVICE.entity.CurrentUser;
 import com.example.RESEARCH_SERVICE.dto.UpdateCategoryRequest;
 import com.example.RESEARCH_SERVICE.entity.ResearchCategory;
 import com.example.RESEARCH_SERVICE.exception.AccessDeniedException;
