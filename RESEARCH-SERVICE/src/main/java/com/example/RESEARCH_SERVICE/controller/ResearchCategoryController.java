@@ -10,7 +10,12 @@ import com.example.RESEARCH_SERVICE.utils.TraceIdUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -130,4 +135,58 @@ public class ResearchCategoryController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PagedResponse<CategoryResponse>>> searchCategory(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String name,
+
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+
+            HttpServletRequest request
+    ) {
+
+        int adjustedPage = Math.max(page - 1, 0);
+        Pageable pageable = PageRequest.of(
+                adjustedPage,
+                size,
+                Sort.by(sortBy)
+        );
+
+        Page<CategoryResponse> categories = categoryService.searchCategories(
+
+                keyword,
+                id,
+                name,
+                pageable
+        );
+
+        PagedResponse<CategoryResponse> response =
+                PagedResponse.<CategoryResponse>builder()
+                        .content(categories.getContent())
+                        .page(categories.getNumber() + 1)
+                        .size(categories.getSize())
+                        .totalElements(categories.getTotalElements())
+                        .totalPages(categories.getTotalPages())
+                        .first(categories.isFirst())
+                        .last(categories.isLast())
+                        .build();
+
+        return ResponseEntity.ok(
+
+                ApiResponse.<PagedResponse<CategoryResponse>>builder()
+                        .success(true)
+                        .message("Categories fetched successfully")
+                        .status(200)
+                        .data(response)
+                        .errors(null)
+                        .path(request.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
 }

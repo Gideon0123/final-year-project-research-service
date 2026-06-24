@@ -11,12 +11,14 @@ import com.example.RESEARCH_SERVICE.exception.CategoryNotFoundException;
 import com.example.RESEARCH_SERVICE.mapper.ResearchCategoryMapper;
 import com.example.RESEARCH_SERVICE.payload.PagedResponse;
 import com.example.RESEARCH_SERVICE.repository.ResearchCategoryRepository;
+import com.example.RESEARCH_SERVICE.repository.specification.ResearchCategorySpecBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -118,5 +120,23 @@ public class ResearchCategoryService {
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
 
         categoryRepository.delete(category);
+    }
+
+    @Transactional
+    public Page<CategoryResponse> searchCategories(
+            String keyword,
+            Long id,
+            String name,
+            Pageable pageable
+    ) {
+        Specification<ResearchCategory> spec = ResearchCategorySpecBuilder.build(
+                keyword,
+                id,
+                name
+        );
+
+        Page<ResearchCategory> page = categoryRepository.findAll(spec, pageable);
+
+        return page.map(mapper::toResponse);
     }
 }
