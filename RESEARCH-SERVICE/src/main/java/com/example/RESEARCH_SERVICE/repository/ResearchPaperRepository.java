@@ -8,15 +8,20 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.awt.print.Pageable;
+import java.util.Optional;
 
-//@Repository
-//public interface ResearchPaperRepository
-//        extends JpaRepository<ResearchPaper, Long>,
-//        JpaSpecificationExecutor<ResearchPaper> {
-//
-//    Page<ResearchPaper> findByStatus(ResearchStatus status, Pageable pageable);
-//
-//    Page<ResearchPaper> findByCategoryId(Long categoryId, Pageable pageable);
-//
-//    boolean existsByTitleIgnoreCase(String title);
-//}
+@Repository
+public interface ResearchPaperRepository
+        extends JpaRepository<ResearchPaper, Long>,
+        JpaSpecificationExecutor<ResearchPaper> {
+
+    Page<ResearchPaper> findByStatus(ResearchStatus status, Pageable pageable);
+
+    Page<ResearchPaper> findByCategoryId(Long categoryId, Pageable pageable);
+
+    boolean existsByTitleIgnoreCase(String title);
+
+    Optional<ResearchPaper> findByIdAndAuthorId(Long id, Long authorId);
+
+    Page<ResearchPaper> findByAuthorId(Long authorId, Pageable pageable);
+}
