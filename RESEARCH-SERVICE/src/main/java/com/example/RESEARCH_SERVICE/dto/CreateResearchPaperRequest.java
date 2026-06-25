@@ -2,19 +2,30 @@ package com.example.RESEARCH_SERVICE.dto;
 
 import com.example.RESEARCH_SERVICE.enums.ResearchVisibility;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public record CreateResearchPaperRequest(
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateResearchPaperRequest {
 
         @NotBlank
-        String title,
+        private String title;
 
         @NotBlank
-        String abstractText,
+        private String abstractText;
 
-        String keywords,
+        @NotBlank
+        private String keywords;
 
-        Long categoryId,
+        @NotNull
+        private Long categoryId;
 
-        ResearchVisibility visibility
-) {
+        @NotNull
+        private ResearchVisibility visibility;
 }
