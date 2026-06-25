@@ -27,6 +27,14 @@ public class GlobalExceptionHandler {
         return buildResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED.value(), request);
     }
 
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDuplicateResources(
+            DuplicateResourceException ex,
+            HttpServletRequest request
+    ) {
+        return buildResponse(ex.getMessage(), HttpStatus.CONFLICT.value(), request);
+    }
+
 //    @ExceptionHandler(RateLimitExceededException.class)
 //    public ResponseEntity<ApiResponse<Object>> handleRateLimitExceeded(
 //            RateLimitExceededException ex,
