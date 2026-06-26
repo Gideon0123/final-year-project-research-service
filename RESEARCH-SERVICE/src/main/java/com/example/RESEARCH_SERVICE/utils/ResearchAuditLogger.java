@@ -91,7 +91,7 @@ public class ResearchAuditLogger {
                 paperId={}
                 title={}
                 actor={}
-                """,
+               \s""",
                 paper.getId(),
                 paper.getTitle(),
                 actorId
@@ -109,7 +109,25 @@ public class ResearchAuditLogger {
                 paperId={}
                 title={}
                 actor={}
-                """,
+               \s""",
+                paper.getId(),
+                paper.getTitle(),
+                actorId
+        );
+    }
+
+    public void logPaperPublished(
+            ResearchPaper paper,
+            Long actorId
+    ) {
+
+        log.info(
+                """
+            RESEARCH PUBLISHED
+                paperId={}
+                title={}
+                actor={}
+               \s""",
                 paper.getId(),
                 paper.getTitle(),
                 actorId

@@ -239,4 +239,51 @@ public class ResearchPaperController {
                         .build()
         );
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'REVIEWER')")
+    @PatchMapping("/{paperId}/status")
+    public ResponseEntity<ApiResponse<ResearchPaperResponse>> changeStatus(
+            @PathVariable Long paperId,
+            @Valid @RequestBody ChangeResearchStatusRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        ResearchPaperResponse response = paperService.changeStatus(
+                paperId, request
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.<ResearchPaperResponse>builder()
+                        .success(true)
+                        .status(HttpStatus.OK.value())
+                        .message("Research Paper Status Successfully Changed")
+                        .data(response)
+                        .errors(null)
+                        .path(httpRequest.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'REVIEWER')")
+    @PatchMapping("/{paperId}/publish")
+    public ResponseEntity<ApiResponse<ResearchPaperResponse>> publishPaper(
+            @PathVariable Long paperId,
+            HttpServletRequest httpRequest
+    ) {
+        ResearchPaperResponse response = paperService.publishPaper(paperId);
+
+        return ResponseEntity.ok(
+                ApiResponse.<ResearchPaperResponse>builder()
+                        .success(true)
+                        .status(HttpStatus.OK.value())
+                        .message("Research Paper Status Successfully Published")
+                        .data(response)
+                        .errors(null)
+                        .path(httpRequest.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
 }

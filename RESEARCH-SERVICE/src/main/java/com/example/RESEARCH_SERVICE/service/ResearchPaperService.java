@@ -425,7 +425,33 @@ public class ResearchPaperService {
         ResearchPaper saved = paperRepository.save(paper);
         auditLogger.logReviewCompleted(saved, currentUserService.getCurrentUser().getId());
         eventPublisher.publishReviewCompleted(saved);
+        return mapper.toResponse(saved);
+    }
 
+    @Transactional
+    public ResearchPaperResponse publishPaper(
+            Long paperId
+    ) {
+        ResearchPaper paper = paperRepository.findById(paperId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Research paper not found")
+                );
+
+        if (paper.getStatus() != ResearchStatus.APPROVED) {
+            throw new InvalidOperationException(
+                    "Only approved papers can be published"
+            );
+        }
+
+        paper.setStatus(
+                ResearchStatus.PUBLISHED
+        );
+
+        paper.setPublishedAt(LocalDateTime.now());
+
+        ResearchPaper saved = paperRepository.save(paper);
+        auditLogger.logPaperPublished(saved, currentUserService.getCurrentUser().getId());
+        eventPublisher.publishResearchPublished(saved);
         return mapper.toResponse(saved);
     }
 }
