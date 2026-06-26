@@ -2,21 +2,30 @@ package com.example.RESEARCH_SERVICE.service;
 
 import com.example.RESEARCH_SERVICE.dto.CreateResearchPaperRequest;
 import com.example.RESEARCH_SERVICE.dto.ResearchPaperResponse;
+import com.example.RESEARCH_SERVICE.dto.ResearchPaperSummaryResponse;
 import com.example.RESEARCH_SERVICE.entity.CurrentUser;
 import com.example.RESEARCH_SERVICE.entity.ResearchCategory;
 import com.example.RESEARCH_SERVICE.entity.ResearchPaper;
 import com.example.RESEARCH_SERVICE.enums.ResearchStatus;
+import com.example.RESEARCH_SERVICE.enums.ResearchVisibility;
 import com.example.RESEARCH_SERVICE.exception.AccessDeniedException;
 import com.example.RESEARCH_SERVICE.exception.DuplicateResourceException;
 import com.example.RESEARCH_SERVICE.exception.ResourceNotFoundException;
 import com.example.RESEARCH_SERVICE.mapper.ResearchPaperMapper;
+import com.example.RESEARCH_SERVICE.payload.PagedResponse;
 import com.example.RESEARCH_SERVICE.publisher.ResearchEventPublisher;
 import com.example.RESEARCH_SERVICE.repository.ResearchCategoryRepository;
 import com.example.RESEARCH_SERVICE.repository.ResearchPaperRepository;
 import com.example.RESEARCH_SERVICE.utils.ResearchAuditLogger;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +48,35 @@ public class ResearchPaperService {
         ) {
             throw new AccessDeniedException("You are not allowed to submit research papers");
         }
+    }
+
+    private void validatePaperAccess(
+            ResearchPaper paper
+    ) {
+        CurrentUser currentUser = currentUserService.getCurrentUser();
+
+        boolean isOwner = Objects.equals(
+                paper.getAuthorId(),
+                currentUser.getId()
+        );
+
+        boolean isAdmin = currentUser.getRole().equalsIgnoreCase("ADMIN");
+
+        boolean isReviewer = Objects.equals(
+                paper.getReviewerId(),
+                currentUser.getId()
+        );
+
+        if (isOwner || isAdmin || isReviewer) {
+            return;
+        }
+
+        if (paper.getStatus() == ResearchStatus.PUBLISHED
+                && paper.getVisibility() == ResearchVisibility.PUBLIC) {
+            return;
+        }
+
+        throw new AccessDeniedException("You do not have permission to view this paper");
     }
 
     @Transactional
@@ -96,5 +134,39 @@ public class ResearchPaperService {
         eventPublisher.publishResearchCreated(saved);
 
         return mapper.toResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public ResearchPaperResponse getPaperById(
+            Long paperId
+    ) {
+        ResearchPaper paper = paperRepository.findById(paperId)
+                .orElseThrow(() -> new ResourceNotFoundException("Research paper not found"));
+
+        validatePaperAccess(paper);
+
+        return mapper.toResponse(paper);
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<ResearchPaperSummaryResponse> getAllPapers(
+            int page,
+            int size,
+            String sortBy,
+            String sortDirection
+    ) {
+        Sort sort = sortDirection.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<ResearchPaperSummaryResponse> papers = paperRepository.findByStatusAndVisibility(
+                ResearchStatus.PUBLISHED,
+                ResearchVisibility.PUBLIC,
+                pageable
+        ).map(mapper::toSummary);
+
+        return new PagedResponse<>(papers);
     }
 }

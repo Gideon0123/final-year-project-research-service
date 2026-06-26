@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +39,7 @@ public class ResearchCategoryController {
                 ApiResponse.<CategoryResponse>builder()
                         .success(true)
                         .message("Category created successfully")
-                        .status(201)
+                        .status(HttpStatus.CREATED.value())
                         .data(categoryResponse)
                         .errors(null)
                         .path(httpRequest.getRequestURI())
@@ -61,7 +62,7 @@ public class ResearchCategoryController {
                 ApiResponse.<CategoryResponse>builder()
                         .success(true)
                         .message("Category Fetched successfully")
-                        .status(200)
+                        .status(HttpStatus.OK.value())
                         .data(categoryResponse)
                         .errors(null)
                         .path(httpRequest.getRequestURI())
@@ -95,7 +96,7 @@ public class ResearchCategoryController {
                 ApiResponse.<PagedResponse<CategoryResponse>>builder()
                         .success(true)
                         .message("Categories fetched successfully")
-                        .status(200)
+                        .status(HttpStatus.OK.value())
                         .data(response)
                         .errors(null)
                         .path(request.getRequestURI())
@@ -115,7 +116,7 @@ public class ResearchCategoryController {
         return ResponseEntity.ok(
                 ApiResponse.<CategoryResponse>builder()
                         .success(true)
-                        .status(200)
+                        .status(HttpStatus.OK.value())
                         .message("Category updated successfully")
                         .data(categoryResponse)
                         .errors(null)
@@ -180,7 +181,7 @@ public class ResearchCategoryController {
                 ApiResponse.<PagedResponse<CategoryResponse>>builder()
                         .success(true)
                         .message("Categories fetched successfully")
-                        .status(200)
+                        .status(HttpStatus.OK.value())
                         .data(response)
                         .errors(null)
                         .path(request.getRequestURI())

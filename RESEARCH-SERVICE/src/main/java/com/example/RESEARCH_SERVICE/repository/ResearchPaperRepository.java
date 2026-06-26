@@ -2,6 +2,7 @@ package com.example.RESEARCH_SERVICE.repository;
 
 import com.example.RESEARCH_SERVICE.entity.ResearchPaper;
 import com.example.RESEARCH_SERVICE.enums.ResearchStatus;
+import com.example.RESEARCH_SERVICE.enums.ResearchVisibility;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,4 +24,10 @@ public interface ResearchPaperRepository extends JpaRepository<ResearchPaper, Lo
     Optional<ResearchPaper> findByIdAndAuthorId(Long id, Long authorId);
 
     Page<ResearchPaper> findByAuthorId(Long authorId, Pageable pageable);
+
+    Page<ResearchPaper>findByStatusAndVisibility(
+            ResearchStatus status,
+            ResearchVisibility visibility,
+            Pageable pageable
+    );
 }

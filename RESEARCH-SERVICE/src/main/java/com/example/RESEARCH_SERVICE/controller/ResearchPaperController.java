@@ -1,8 +1,7 @@
 package com.example.RESEARCH_SERVICE.controller;
 
-import com.example.RESEARCH_SERVICE.dto.ApiResponse;
-import com.example.RESEARCH_SERVICE.dto.CreateResearchPaperRequest;
-import com.example.RESEARCH_SERVICE.dto.ResearchPaperResponse;
+import com.example.RESEARCH_SERVICE.dto.*;
+import com.example.RESEARCH_SERVICE.payload.PagedResponse;
 import com.example.RESEARCH_SERVICE.service.ResearchPaperService;
 import com.example.RESEARCH_SERVICE.utils.TraceIdUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,7 +33,7 @@ public class ResearchPaperController {
                 ApiResponse.<ResearchPaperResponse>builder()
                         .success(true)
                         .message("Research Paper created successfully")
-                        .status(201)
+                        .status(HttpStatus.CREATED.value())
                         .data(paperResponse)
                         .errors(null)
                         .path(httpRequest.getRequestURI())
@@ -45,4 +44,67 @@ public class ResearchPaperController {
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
+    @GetMapping("/{paperId}")
+    public ResponseEntity<ApiResponse<ResearchPaperResponse>> getPaperById(
+            @PathVariable Long paperId,
+            HttpServletRequest request
+    ) {
+        ResearchPaperResponse response = paperService.getPaperById(
+                paperId
+        );
+
+        ApiResponse<ResearchPaperResponse> apiResponse =
+                ApiResponse.<ResearchPaperResponse>builder()
+                        .success(true)
+                        .message("Research paper retrieved successfully")
+                        .status(HttpStatus.OK.value())
+                        .data(response)
+                        .path(request.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<PagedResponse<ResearchPaperSummaryResponse>>> getAllPapers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection,
+            HttpServletRequest request
+    ) {
+        int adjustedPage = Math.max(page - 1, 0);
+        PagedResponse<ResearchPaperSummaryResponse> papers = paperService.getAllPapers(
+                adjustedPage,
+                size,
+                sortBy,
+                sortDirection
+        );
+
+        PagedResponse<ResearchPaperSummaryResponse> response =
+                PagedResponse.<ResearchPaperSummaryResponse>builder()
+                .content(papers.getContent())
+                .size(papers.getSize())
+                .page(papers.getPage())
+                .first(papers.isFirst())
+                .last(papers.isLast())
+                .totalElements(papers.getTotalElements())
+                .totalPages(papers.getTotalPages())
+                .build();
+
+        return ResponseEntity.ok(
+                ApiResponse.<PagedResponse<ResearchPaperSummaryResponse>>builder()
+                        .success(true)
+                        .message("Researches fetched successfully")
+                        .status(HttpStatus.OK.value())
+                        .data(response)
+                        .errors(null)
+                        .path(request.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
 }
