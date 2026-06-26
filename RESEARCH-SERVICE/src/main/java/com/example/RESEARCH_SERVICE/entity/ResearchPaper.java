@@ -48,7 +48,6 @@ public class ResearchPaper extends BaseEntity {
 
     private Long fileSize;
 
-
     @ManyToOne
     @JoinColumn(name = "category_id")
     private ResearchCategory category;

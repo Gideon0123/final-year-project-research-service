@@ -18,8 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -31,6 +29,7 @@ public class ResearchPaperService {
     private final CurrentUserService currentUserService;
     private final ResearchAuditLogger auditLogger;
     private final ResearchEventPublisher eventPublisher;
+//    private final UserServiceClient userServiceClient;
 
     private void validateSubmissionPermission() {
 
@@ -50,6 +49,10 @@ public class ResearchPaperService {
 
         CurrentUser user = currentUserService.getCurrentUser();
 
+//        UserProfileResponse profile =  userServiceClient.getUserProfile(
+//                user.getId()
+//        );
+
         if (paperRepository.existsByTitleIgnoreCase(request.getTitle())) {
             throw new DuplicateResourceException("Research paper title already exists");
         }
@@ -66,10 +69,10 @@ public class ResearchPaperService {
                         .visibility(request.getVisibility())
                         .authorId(user.getId())
                         .authorEmail(user.getEmail())
+
                         /*
-                         Temporary values.
-                         Later retrieved from
-                         User Service.
+                         TODO:
+                         Replace with User Service profile lookup.
                         */
                         .authorName(user.getEmail())
                         .institution("UNKNOWN")
@@ -79,7 +82,11 @@ public class ResearchPaperService {
                         .versionNumber(1)
                         .viewCount(0L)
                         .downloadCount(0L)
-                        .submittedAt(LocalDateTime.now())
+                        .submittedAt(null)
+                        .publishedAt(null)
+                        .reviewerId(null)
+                        .reviewAssignedAt(null)
+                        .reviewCompletedAt(null)
                         .build();
 
         ResearchPaper saved = paperRepository.save(paper);
