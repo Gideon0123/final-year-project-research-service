@@ -15,12 +15,14 @@ import com.example.RESEARCH_SERVICE.payload.PagedResponse;
 import com.example.RESEARCH_SERVICE.publisher.ResearchEventPublisher;
 import com.example.RESEARCH_SERVICE.repository.ResearchCategoryRepository;
 import com.example.RESEARCH_SERVICE.repository.ResearchPaperRepository;
+import com.example.RESEARCH_SERVICE.repository.specification.ResearchPaperSpecification;
 import com.example.RESEARCH_SERVICE.utils.ResearchAuditLogger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -453,5 +455,18 @@ public class ResearchPaperService {
         auditLogger.logPaperPublished(saved, currentUserService.getCurrentUser().getId());
         eventPublisher.publishResearchPublished(saved);
         return mapper.toResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ResearchPaperSummaryResponse> search(
+            ResearchPaperSearchRequest request,
+            Pageable pageable
+    ) {
+        Specification<ResearchPaper> spec = ResearchPaperSpecification.build(
+                request
+        );
+
+        Page<ResearchPaper> papers = paperRepository.findAll(spec, pageable);
+        return papers.map(mapper::toSummary);
     }
 }

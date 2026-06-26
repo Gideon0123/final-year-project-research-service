@@ -17,9 +17,10 @@ public class ResearchPaperSearchRequest {
 
     private String keyword;
     private Long categoryId;
-    private Long authorId;
     private ResearchStatus status;
     private ResearchVisibility visibility;
+    private Long authorId;
+    private Long reviewerId;
     private LocalDateTime createdAfter;
     private LocalDateTime createdBefore;
 }

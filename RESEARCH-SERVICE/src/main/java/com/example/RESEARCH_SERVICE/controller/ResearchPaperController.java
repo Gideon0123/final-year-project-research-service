@@ -7,6 +7,10 @@ import com.example.RESEARCH_SERVICE.utils.TraceIdUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -278,6 +282,52 @@ public class ResearchPaperController {
                         .success(true)
                         .status(HttpStatus.OK.value())
                         .message("Research Paper Status Successfully Published")
+                        .data(response)
+                        .errors(null)
+                        .path(httpRequest.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<
+            ApiResponse<PagedResponse<ResearchPaperSummaryResponse>>> search(
+            ResearchPaperSearchRequest request,
+
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+
+            HttpServletRequest httpRequest
+    ) {
+        int adjustedPage = Math.max(page - 1, 0);
+        Pageable pageable = PageRequest.of(
+                adjustedPage,
+                size,
+                Sort.by(sortBy)
+        );
+
+        Page<ResearchPaperSummaryResponse> papers = paperService.search(request, pageable);
+
+        PagedResponse<ResearchPaperSummaryResponse> response =
+                PagedResponse.<ResearchPaperSummaryResponse>builder()
+                        .content(papers.getContent())
+                        .page(papers.getNumber() + 1)
+                        .size(papers.getSize())
+                        .totalElements(papers.getTotalElements())
+                        .totalPages(papers.getTotalPages())
+                        .first(papers.isFirst())
+                        .last(papers.isLast())
+                        .build();
+
+        return ResponseEntity.ok(
+
+                ApiResponse.<PagedResponse<ResearchPaperSummaryResponse>>builder()
+                        .success(true)
+                        .message("Research Papers fetched successfully")
+                        .status(HttpStatus.OK.value())
                         .data(response)
                         .errors(null)
                         .path(httpRequest.getRequestURI())
