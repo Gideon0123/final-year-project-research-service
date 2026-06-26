@@ -292,8 +292,7 @@ public class ResearchPaperController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<
-            ApiResponse<PagedResponse<ResearchPaperSummaryResponse>>> search(
+    public ResponseEntity<ApiResponse<PagedResponse<ResearchPaperSummaryResponse>>> search(
             ResearchPaperSearchRequest request,
 
             @RequestParam(defaultValue = "1") int page,

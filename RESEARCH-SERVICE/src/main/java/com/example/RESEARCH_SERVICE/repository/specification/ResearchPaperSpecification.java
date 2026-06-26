@@ -115,6 +115,15 @@ public class ResearchPaperSpecification {
         };
     }
 
+    public static Specification<ResearchPaper> publishedOnly() {
+
+        return (root, query, cb) ->
+                cb.equal(
+                        root.get("status"),
+                        ResearchStatus.PUBLISHED
+                );
+    }
+
     public static Specification<ResearchPaper> hasReviewer(
             Long reviewerId
     ) {
@@ -167,6 +176,7 @@ public class ResearchPaperSpecification {
                 .and(hasStatus(request.getStatus()))
                 .and(hasVisibility(request.getVisibility()))
                 .and(hasAuthor(request.getAuthorId()))
+                .and(publishedOnly())
                 .and(hasReviewer(request.getReviewerId()))
                 .and(createdBefore(request.getCreatedBefore()))
                 .and(createdAfter(request.getCreatedAfter()));
