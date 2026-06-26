@@ -79,4 +79,40 @@ public class ResearchAuditLogger {
                 actorId
         );
     }
+
+    public void logReviewerAssigned(
+            ResearchPaper paper,
+            Long actorId
+    ) {
+
+        log.info(
+                """
+            REVIEWER ASSIGNED
+                paperId={}
+                title={}
+                actor={}
+                """,
+                paper.getId(),
+                paper.getTitle(),
+                actorId
+        );
+    }
+
+    public void logReviewCompleted(
+            ResearchPaper paper,
+            Long actorId
+    ) {
+
+        log.info(
+                """
+            REVIEW COMPLETED
+                paperId={}
+                title={}
+                actor={}
+                """,
+                paper.getId(),
+                paper.getTitle(),
+                actorId
+        );
+    }
 }

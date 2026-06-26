@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -189,5 +190,53 @@ public class ResearchPaperController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{paperId}/submit")
+    public ResponseEntity<ApiResponse<ResearchPaperResponse>> submitPaper(
+            @PathVariable Long paperId,
+            HttpServletRequest request
+    ) {
+        ResearchPaperResponse response = paperService.submitPaper(
+                paperId
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.<ResearchPaperResponse>builder()
+                        .success(true)
+                        .status(HttpStatus.OK.value())
+                        .message("Research Paper Submitted Successfully")
+                        .data(response)
+                        .errors(null)
+                        .path(request.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{paperId}/assign-reviewer")
+    public ResponseEntity<ApiResponse<ResearchPaperResponse>> assignReviewer(
+            @PathVariable Long paperId,
+            @Valid @RequestBody AssignReviewerRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        ResearchPaperResponse response = paperService.assignReviewer(
+                paperId, request
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.<ResearchPaperResponse>builder()
+                        .success(true)
+                        .status(HttpStatus.OK.value())
+                        .message("Research Paper Reviewer Successfully Assigned")
+                        .data(response)
+                        .errors(null)
+                        .path(httpRequest.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
     }
 }

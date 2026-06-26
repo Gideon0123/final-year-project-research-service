@@ -41,4 +41,20 @@ public class ResearchEventPublisherImpl implements ResearchEventPublisher {
                 paper.getId()
         );
     }
+
+    @Override
+    public void publishReviewerAssigned(ResearchPaper paper) {
+        log.info(
+                "Reviewer Assigned: {}",
+                paper.getId()
+        );
+    }
+
+    @Override
+    public void publishReviewCompleted(ResearchPaper paper) {
+        log.info(
+                "Review Completed: {}",
+                paper.getId()
+        );
+    }
 }

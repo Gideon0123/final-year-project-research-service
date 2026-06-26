@@ -8,5 +8,6 @@ public interface ResearchEventPublisher {
     void publishResearchUpdated(ResearchPaper paper);
     void publishResearchDeleted(ResearchPaper paper);
     void publishResearchSubmitted(ResearchPaper paper);
-
+    void publishReviewerAssigned(ResearchPaper paper);
+    void publishReviewCompleted(ResearchPaper paper);
 }

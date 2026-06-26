@@ -1,9 +1,6 @@
 package com.example.RESEARCH_SERVICE.service;
 
-import com.example.RESEARCH_SERVICE.dto.CreateResearchPaperRequest;
-import com.example.RESEARCH_SERVICE.dto.ResearchPaperResponse;
-import com.example.RESEARCH_SERVICE.dto.ResearchPaperSummaryResponse;
-import com.example.RESEARCH_SERVICE.dto.UpdateResearchPaperRequest;
+import com.example.RESEARCH_SERVICE.dto.*;
 import com.example.RESEARCH_SERVICE.entity.CurrentUser;
 import com.example.RESEARCH_SERVICE.entity.ResearchCategory;
 import com.example.RESEARCH_SERVICE.entity.ResearchPaper;
@@ -40,7 +37,6 @@ public class ResearchPaperService {
     private final ResearchPaperMapper mapper;
     private final CurrentUserService currentUserService;
     private final ResearchAuditLogger auditLogger;
-    private final AuditLogService auditLogService;
     private final ResearchEventPublisher eventPublisher;
 //    private final UserServiceClient userServiceClient;
 
@@ -48,8 +44,7 @@ public class ResearchPaperService {
 
         String role = currentUserService.getCurrentUser().getRole();
 
-        if (!role.equals("RESEARCHER") && !role.equals("ADMIN")
-        ) {
+        if (!role.equals("RESEARCHER") && !role.equals("ADMIN")) {
             throw new AccessDeniedException("You are not allowed to submit research papers");
         }
     }
@@ -328,7 +323,6 @@ public class ResearchPaperService {
     public ResearchPaperResponse submitPaper(
             Long paperId
     ) {
-
         ResearchPaper paper = paperRepository.findById(paperId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Research paper not found")
@@ -355,6 +349,82 @@ public class ResearchPaperService {
         );
 
         eventPublisher.publishResearchSubmitted(saved);
+
+        return mapper.toResponse(saved);
+    }
+
+    @Transactional
+    public ResearchPaperResponse assignReviewer(
+            Long paperId,
+            AssignReviewerRequest request
+    ) {
+        ResearchPaper paper = paperRepository.findById(paperId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Research paper not found")
+                );
+
+        if (paper.getStatus() != ResearchStatus.SUBMITTED) {
+
+            throw new InvalidOperationException(
+                    "Reviewer can only be assigned to submitted papers"
+            );
+        }
+
+        if (paper.getReviewerId() != null) {
+
+            throw new InvalidOperationException(
+                    "Reviewer already assigned"
+            );
+        }
+
+        paper.setReviewerId(request.getReviewerId());
+        paper.setStatus(ResearchStatus.UNDER_REVIEW);
+        paper.setReviewAssignedAt(LocalDateTime.now());
+        ResearchPaper saved = paperRepository.save(paper);
+
+        auditLogger.logReviewerAssigned(
+                saved,
+                request.getReviewerId()
+        );
+
+        eventPublisher.publishReviewerAssigned(
+                saved
+        );
+
+        return mapper.toResponse(saved);
+    }
+
+    @Transactional
+    public ResearchPaperResponse changeStatus(
+            Long paperId,
+            ChangeResearchStatusRequest request
+    ) {
+        ResearchPaper paper = paperRepository.findById(paperId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Research paper not found")
+                );
+
+        if (paper.getReviewerId() == null) {
+            throw new InvalidOperationException("No reviewer assigned");
+        }
+
+        if (paper.getStatus() != ResearchStatus.UNDER_REVIEW) {
+            throw new InvalidOperationException("Paper is not under review");
+        }
+
+        if (request.getStatus() != ResearchStatus.APPROVED
+                &&
+                request.getStatus() != ResearchStatus.REJECTED
+        ) {
+            throw new InvalidOperationException("Invalid review status");
+        }
+
+        paper.setStatus(request.getStatus());
+        paper.setReviewCompletedAt(LocalDateTime.now());
+
+        ResearchPaper saved = paperRepository.save(paper);
+        auditLogger.logReviewCompleted(saved, currentUserService.getCurrentUser().getId());
+        eventPublisher.publishReviewCompleted(saved);
 
         return mapper.toResponse(saved);
     }
