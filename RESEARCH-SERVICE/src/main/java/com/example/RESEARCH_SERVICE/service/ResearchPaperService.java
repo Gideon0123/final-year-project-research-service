@@ -27,6 +27,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Service
@@ -114,6 +115,32 @@ public class ResearchPaperService {
                 paper.getStatus() != ResearchStatus.REJECTED
         ) {
             throw new InvalidOperationException("Paper can no longer be modified");
+        }
+    }
+
+    private void validatePaperFileExists(
+            ResearchPaper paper
+    ) {
+        if (
+                paper.getStorageKey() == null
+                ||
+                paper.getFileName() == null
+                ||
+                paper.getFileSize() == null
+        ) {
+            throw new InvalidOperationException(
+                    "Research file has not been uploaded"
+            );
+        }
+    }
+
+    private void  validateSubmissionStatus(
+            ResearchPaper paper
+    ) {
+        if (paper.getStatus() != ResearchStatus.DRAFT) {
+            throw new InvalidOperationException(
+                    "Cannot Submit This Research Paper"
+            );
         }
     }
 
@@ -261,6 +288,73 @@ public class ResearchPaperService {
                 saved,
                 currentUserService.getCurrentUser().getId()
         );
+        eventPublisher.publishResearchUpdated(
+                saved
+        );
+
+        return mapper.toResponse(saved);
+    }
+
+    @Transactional
+    public void deletePaper(
+            Long paperId
+    ) {
+        ResearchPaper paper = paperRepository.findById(paperId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Research paper not found")
+                );
+
+        validateOwnership(paper);
+        validateEditableStatus(paper);
+
+        /*
+             TODO:
+             if (paper.getStorageKey() != null) {
+                 fileStorageService.delete(...)
+            }
+        */
+
+        paperRepository.delete(paper);
+        auditLogger.logPaperDeleted(
+                paper,
+                currentUserService.getCurrentUser().getId()
+        );
+        eventPublisher.publishResearchDeleted(
+                paper
+        );
+    }
+
+    @Transactional
+    public ResearchPaperResponse submitPaper(
+            Long paperId
+    ) {
+
+        ResearchPaper paper = paperRepository.findById(paperId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Research paper not found")
+                );
+
+        if (paper.getStorageKey() == null) {
+            throw new InvalidOperationException(
+                    "Please upload a research paper file before submission"
+            );
+        }
+
+        validateOwnership(paper);
+        validatePaperFileExists(paper);
+        validateSubmissionStatus(paper);
+
+        paper.setStatus(ResearchStatus.SUBMITTED);
+        paper.setSubmittedAt(LocalDateTime.now());
+
+        ResearchPaper saved = paperRepository.save(paper);
+
+        auditLogger.logPaperSubmitted(
+                saved,
+                currentUserService.getCurrentUser().getId()
+        );
+
+        eventPublisher.publishResearchSubmitted(saved);
 
         return mapper.toResponse(saved);
     }

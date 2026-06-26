@@ -43,4 +43,40 @@ public class ResearchAuditLogger {
                 actorId
         );
     }
+
+    public void logPaperDeleted(
+            ResearchPaper paper,
+            Long actorId
+    ) {
+
+        log.info(
+                """
+                RESEARCH DELETED
+                paperId={}
+                title={}
+                actor={}
+                """,
+                paper.getId(),
+                paper.getTitle(),
+                actorId
+        );
+    }
+
+    public void logPaperSubmitted(
+            ResearchPaper paper,
+            Long actorId
+    ) {
+
+        log.info(
+                """
+                RESEARCH SUBMITTED
+                paperId={}
+                title={}
+                actor={}
+                """,
+                paper.getId(),
+                paper.getTitle(),
+                actorId
+        );
+    }
 }

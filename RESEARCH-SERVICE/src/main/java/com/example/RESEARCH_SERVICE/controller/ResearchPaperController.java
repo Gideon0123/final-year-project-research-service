@@ -171,4 +171,23 @@ public class ResearchPaperController {
                         .build()
         );
     }
+
+    @DeleteMapping("/{paperId}")
+    public ResponseEntity<ApiResponse<Void>> deletePaper(
+            @PathVariable Long paperId,
+            HttpServletRequest request
+    ) {
+        paperService.deletePaper(paperId);
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .success(true)
+                .message("Research paper deleted successfully")
+                .status(HttpStatus.OK.value())
+                .path(request.getRequestURI())
+                .traceId(TraceIdUtil.generate())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 }
