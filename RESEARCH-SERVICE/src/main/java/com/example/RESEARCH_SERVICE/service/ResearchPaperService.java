@@ -3,6 +3,7 @@ package com.example.RESEARCH_SERVICE.service;
 import com.example.RESEARCH_SERVICE.dto.CreateResearchPaperRequest;
 import com.example.RESEARCH_SERVICE.dto.ResearchPaperResponse;
 import com.example.RESEARCH_SERVICE.dto.ResearchPaperSummaryResponse;
+import com.example.RESEARCH_SERVICE.dto.UpdateResearchPaperRequest;
 import com.example.RESEARCH_SERVICE.entity.CurrentUser;
 import com.example.RESEARCH_SERVICE.entity.ResearchCategory;
 import com.example.RESEARCH_SERVICE.entity.ResearchPaper;
@@ -10,6 +11,7 @@ import com.example.RESEARCH_SERVICE.enums.ResearchStatus;
 import com.example.RESEARCH_SERVICE.enums.ResearchVisibility;
 import com.example.RESEARCH_SERVICE.exception.AccessDeniedException;
 import com.example.RESEARCH_SERVICE.exception.DuplicateResourceException;
+import com.example.RESEARCH_SERVICE.exception.InvalidOperationException;
 import com.example.RESEARCH_SERVICE.exception.ResourceNotFoundException;
 import com.example.RESEARCH_SERVICE.mapper.ResearchPaperMapper;
 import com.example.RESEARCH_SERVICE.payload.PagedResponse;
@@ -37,6 +39,7 @@ public class ResearchPaperService {
     private final ResearchPaperMapper mapper;
     private final CurrentUserService currentUserService;
     private final ResearchAuditLogger auditLogger;
+    private final AuditLogService auditLogService;
     private final ResearchEventPublisher eventPublisher;
 //    private final UserServiceClient userServiceClient;
 
@@ -77,6 +80,41 @@ public class ResearchPaperService {
         }
 
         throw new AccessDeniedException("You do not have permission to view this paper");
+    }
+
+    private Pageable buildPageable(
+            int page,
+            int size,
+            String sortBy,
+            String sortDirection
+    ) {
+
+        Sort sort = sortDirection.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        return PageRequest.of(page, size, sort);
+    }
+
+    private void validateOwnership(
+            ResearchPaper paper
+    ) {
+        CurrentUser currentUser = currentUserService.getCurrentUser();
+
+        if (!Objects.equals(paper.getAuthorId(), currentUser.getId())) {
+            throw new AccessDeniedException("You are not allowed to modify this paper");
+        }
+    }
+
+    private void validateEditableStatus(
+            ResearchPaper paper
+    ) {
+        if (paper.getStatus() != ResearchStatus.DRAFT
+                &&
+                paper.getStatus() != ResearchStatus.REJECTED
+        ) {
+            throw new InvalidOperationException("Paper can no longer be modified");
+        }
     }
 
     @Transactional
@@ -155,11 +193,7 @@ public class ResearchPaperService {
             String sortBy,
             String sortDirection
     ) {
-        Sort sort = sortDirection.equalsIgnoreCase("desc")
-                ? Sort.by(sortBy).descending()
-                : Sort.by(sortBy).ascending();
-
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = buildPageable(page, size, sortBy, sortDirection);
 
         Page<ResearchPaperSummaryResponse> papers = paperRepository.findByStatusAndVisibility(
                 ResearchStatus.PUBLISHED,
@@ -168,5 +202,66 @@ public class ResearchPaperService {
         ).map(mapper::toSummary);
 
         return new PagedResponse<>(papers);
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<ResearchPaperSummaryResponse> getMyPapers(
+            int page,
+            int size,
+            String sortBy,
+            String sortDirection
+    ) {
+        CurrentUser user = currentUserService.getCurrentUser();
+
+        Pageable pageable = buildPageable(page, size, sortBy, sortDirection);
+
+        Page<ResearchPaperSummaryResponse> papers = paperRepository.findByAuthorId(
+                user.getId(),
+                pageable
+        ).map(mapper::toSummary);
+
+        return new PagedResponse<>(papers);
+    }
+
+    @Transactional
+    public ResearchPaperResponse updatePaper(
+            Long paperId,
+            UpdateResearchPaperRequest request
+    ) {
+        ResearchPaper paper = paperRepository.findById(paperId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Research paper not found")
+                );
+
+        validateOwnership(paper);
+        validateEditableStatus(paper);
+
+        ResearchCategory category = categoryRepository.findById(
+                        request.getCategoryId()
+                )
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+        if (!paper.getTitle().equalsIgnoreCase(request.getTitle())
+                &&
+                paperRepository.existsByTitleIgnoreCase(request.getTitle())
+        ) {
+            throw new DuplicateResourceException(
+                    "Research paper title already exists"
+            );
+        }
+
+        paper.setTitle(request.getTitle());
+        paper.setAbstractText(request.getAbstractText());
+        paper.setKeywords(request.getKeywords());
+        paper.setVisibility(request.getVisibility());
+        paper.setCategory(category);
+
+        ResearchPaper saved = paperRepository.save(paper);
+        auditLogger.logPaperUpdated(
+                saved,
+                currentUserService.getCurrentUser().getId()
+        );
+
+        return mapper.toResponse(saved);
     }
 }

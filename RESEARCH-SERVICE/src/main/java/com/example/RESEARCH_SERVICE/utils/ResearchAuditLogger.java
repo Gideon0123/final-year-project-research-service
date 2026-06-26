@@ -25,4 +25,22 @@ public class ResearchAuditLogger {
                 actorId
         );
     }
+
+    public void logPaperUpdated(
+            ResearchPaper paper,
+            Long actorId
+    ) {
+
+        log.info(
+                """
+                RESEARCH UPDATED
+                paperId={}
+                title={}
+                actor={}
+                """,
+                paper.getId(),
+                paper.getTitle(),
+                actorId
+        );
+    }
 }

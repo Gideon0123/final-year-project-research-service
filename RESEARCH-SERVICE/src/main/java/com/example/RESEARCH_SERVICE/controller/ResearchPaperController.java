@@ -107,4 +107,68 @@ public class ResearchPaperController {
                         .build()
         );
     }
+
+    @GetMapping("/my-papers")
+    public ResponseEntity<
+            ApiResponse<PagedResponse<ResearchPaperSummaryResponse>>> getMyPapers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection,
+            HttpServletRequest request
+    ) {
+        int adjustedPage = Math.max(page - 1, 0);
+        PagedResponse<ResearchPaperSummaryResponse> papers = paperService.getMyPapers(
+                adjustedPage,
+                size,
+                sortBy,
+                sortDirection
+        );
+
+        PagedResponse<ResearchPaperSummaryResponse> response =
+                PagedResponse.<ResearchPaperSummaryResponse>builder()
+                        .content(papers.getContent())
+                        .size(papers.getSize())
+                        .page(papers.getPage())
+                        .first(papers.isFirst())
+                        .last(papers.isLast())
+                        .totalElements(papers.getTotalElements())
+                        .totalPages(papers.getTotalPages())
+                        .build();
+
+        return ResponseEntity.ok(
+                ApiResponse.<PagedResponse<ResearchPaperSummaryResponse>>builder()
+                        .success(true)
+                        .message("My Research Papers fetched successfully")
+                        .status(HttpStatus.OK.value())
+                        .data(response)
+                        .errors(null)
+                        .path(request.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+    @PutMapping("/{paperId}")
+    public ResponseEntity<ApiResponse<ResearchPaperResponse>> updatePaper(
+            @PathVariable Long paperId,
+            @Valid @RequestBody UpdateResearchPaperRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        ResearchPaperResponse paperResponse = paperService.updatePaper(paperId, request);
+
+        return ResponseEntity.ok(
+                ApiResponse.<ResearchPaperResponse>builder()
+                        .success(true)
+                        .status(HttpStatus.OK.value())
+                        .message("Research Paper updated successfully")
+                        .data(paperResponse)
+                        .errors(null)
+                        .path(httpRequest.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
 }
