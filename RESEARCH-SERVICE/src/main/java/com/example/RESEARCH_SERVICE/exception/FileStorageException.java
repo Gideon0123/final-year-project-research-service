@@ -1,7 +1,16 @@
 package com.example.RESEARCH_SERVICE.exception;
 
 public class FileStorageException extends RuntimeException {
-    public FileStorageException(String message, Exception ex) {
+    public FileStorageException(
+            String message
+    ) {
         super(message);
+    }
+
+    public FileStorageException(
+            String message,
+            Throwable cause
+    ) {
+        super(message, cause);
     }
 }

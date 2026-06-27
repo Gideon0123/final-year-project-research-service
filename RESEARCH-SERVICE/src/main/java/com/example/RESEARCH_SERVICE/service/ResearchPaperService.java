@@ -185,6 +185,14 @@ public class ResearchPaperService {
         );
     }
 
+    private void validateFileNotAlreadyUploaded(
+            ResearchPaper paper
+    ) {
+        if (paper.getStorageKey() != null) {
+            throw new InvalidOperationException("Paper already contains an uploaded file");
+        }
+    }
+
     private void  validateSubmissionStatus(
             ResearchPaper paper
     ) {
@@ -515,6 +523,8 @@ public class ResearchPaperService {
 
         ResearchPaper paper = getPaperEntity(paperId);
 
+        validateFileNotAlreadyUploaded(paper);
+
         validateOwnership(paper);
         validateUploadStatus(paper);
         validatePdf(file);
@@ -524,12 +534,15 @@ public class ResearchPaperService {
                 paper.getVersionNumber()
         );
 
-        fileStorageService.uploadFile(file, objectKey);
+        String storageKey = fileStorageService.uploadFile(
+                file,
+                objectKey
+        );
 
         paper.setFileName(file.getOriginalFilename());
         paper.setContentType(file.getContentType());
         paper.setFileSize(file.getSize());
-        paper.setStorageKey(objectKey);
+        paper.setStorageKey(storageKey);
 
         ResearchPaper saved = paperRepository.save(paper);
         auditLogger.logPaperUploaded(saved, user.getId());
