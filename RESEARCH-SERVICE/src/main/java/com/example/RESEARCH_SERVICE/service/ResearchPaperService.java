@@ -42,7 +42,17 @@ public class ResearchPaperService {
     private final CurrentUserService currentUserService;
     private final ResearchAuditLogger auditLogger;
     private final ResearchEventPublisher eventPublisher;
+    private final FileStorageService fileStorageService;
 //    private final UserServiceClient userServiceClient;
+
+    private ResearchPaper getPaperEntity(
+            Long paperId
+    ) {
+        return paperRepository.findById(paperId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                                "Research paper not found with id: " + paperId)
+                );
+    }
 
     private void validateSubmissionPermission() {
 
@@ -112,6 +122,17 @@ public class ResearchPaperService {
         if (paper.getStatus() != ResearchStatus.DRAFT
                 &&
                 paper.getStatus() != ResearchStatus.REJECTED
+        ) {
+            throw new InvalidOperationException("Paper can no longer be modified");
+        }
+    }
+
+    private void validateUploadStatus(
+            ResearchPaper paper
+    ) {
+        if (paper.getStatus() == ResearchStatus.PUBLISHED
+                ||
+                paper.getStatus() == ResearchStatus.APPROVED
         ) {
             throw new InvalidOperationException("Paper can no longer be modified");
         }
@@ -235,8 +256,7 @@ public class ResearchPaperService {
     public ResearchPaperResponse getPaperById(
             Long paperId
     ) {
-        ResearchPaper paper = paperRepository.findById(paperId)
-                .orElseThrow(() -> new ResourceNotFoundException("Research paper not found"));
+        ResearchPaper paper = getPaperEntity(paperId);
 
         validatePaperAccess(paper);
 
@@ -285,10 +305,7 @@ public class ResearchPaperService {
             Long paperId,
             UpdateResearchPaperRequest request
     ) {
-        ResearchPaper paper = paperRepository.findById(paperId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Research paper not found")
-                );
+        ResearchPaper paper = getPaperEntity(paperId);
 
         validateOwnership(paper);
         validateEditableStatus(paper);
@@ -329,10 +346,7 @@ public class ResearchPaperService {
     public void deletePaper(
             Long paperId
     ) {
-        ResearchPaper paper = paperRepository.findById(paperId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Research paper not found")
-                );
+        ResearchPaper paper = getPaperEntity(paperId);
 
         validateOwnership(paper);
         validateEditableStatus(paper);
@@ -358,10 +372,7 @@ public class ResearchPaperService {
     public ResearchPaperResponse submitPaper(
             Long paperId
     ) {
-        ResearchPaper paper = paperRepository.findById(paperId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Research paper not found")
-                );
+        ResearchPaper paper = getPaperEntity(paperId);
 
         if (paper.getStorageKey() == null) {
             throw new InvalidOperationException(
@@ -393,10 +404,7 @@ public class ResearchPaperService {
             Long paperId,
             AssignReviewerRequest request
     ) {
-        ResearchPaper paper = paperRepository.findById(paperId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Research paper not found")
-                );
+        ResearchPaper paper = getPaperEntity(paperId);
 
         if (paper.getStatus() != ResearchStatus.SUBMITTED) {
 
@@ -434,10 +442,7 @@ public class ResearchPaperService {
             Long paperId,
             ChangeResearchStatusRequest request
     ) {
-        ResearchPaper paper = paperRepository.findById(paperId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Research paper not found")
-                );
+        ResearchPaper paper = getPaperEntity(paperId);
 
         if (paper.getReviewerId() == null) {
             throw new InvalidOperationException("No reviewer assigned");
@@ -467,10 +472,7 @@ public class ResearchPaperService {
     public ResearchPaperResponse publishPaper(
             Long paperId
     ) {
-        ResearchPaper paper = paperRepository.findById(paperId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Research paper not found")
-                );
+        ResearchPaper paper = getPaperEntity(paperId);
 
         if (paper.getStatus() != ResearchStatus.APPROVED) {
             throw new InvalidOperationException(
@@ -514,9 +516,7 @@ public class ResearchPaperService {
         ResearchPaper paper = getPaperEntity(paperId);
 
         validateOwnership(paper);
-
         validateUploadStatus(paper);
-
         validatePdf(file);
 
         String objectKey = buildObjectKey(
@@ -524,10 +524,7 @@ public class ResearchPaperService {
                 paper.getVersionNumber()
         );
 
-        fileStorageService.uploadFile(
-                objectKey,
-                file
-        );
+        fileStorageService.uploadFile(file, objectKey);
 
         paper.setFileName(file.getOriginalFilename());
         paper.setContentType(file.getContentType());
