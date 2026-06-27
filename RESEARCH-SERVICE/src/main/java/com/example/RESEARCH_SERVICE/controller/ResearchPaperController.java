@@ -12,10 +12,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -330,6 +332,33 @@ public class ResearchPaperController {
                         .data(response)
                         .errors(null)
                         .path(httpRequest.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+    @PostMapping(
+            value = "/{paperId}/upload",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<ApiResponse<UploadPaperResponse>> uploadPaper(
+            @PathVariable Long paperId,
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest request
+    ) {
+        UploadPaperResponse response = paperService.uploadPaper(
+                paperId,
+                file
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.<UploadPaperResponse>builder()
+                        .success(true)
+                        .status(HttpStatus.OK.value())
+                        .message("Paper uploaded successfully")
+                        .data(response)
+                        .path(request.getRequestURI())
                         .traceId(TraceIdUtil.generate())
                         .timestamp(LocalDateTime.now())
                         .build()

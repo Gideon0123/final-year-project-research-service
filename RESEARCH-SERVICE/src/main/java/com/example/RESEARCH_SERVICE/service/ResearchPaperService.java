@@ -16,6 +16,7 @@ import com.example.RESEARCH_SERVICE.publisher.ResearchEventPublisher;
 import com.example.RESEARCH_SERVICE.repository.ResearchCategoryRepository;
 import com.example.RESEARCH_SERVICE.repository.ResearchPaperRepository;
 import com.example.RESEARCH_SERVICE.repository.specification.ResearchPaperSpecification;
+import com.example.RESEARCH_SERVICE.utils.FileConstants;
 import com.example.RESEARCH_SERVICE.utils.ResearchAuditLogger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -129,6 +131,37 @@ public class ResearchPaperService {
                     "Research file has not been uploaded"
             );
         }
+    }
+
+    private void validatePdf(
+            MultipartFile file
+    ) {
+
+        if (file.isEmpty()) {
+
+            throw new InvalidOperationException(
+                    "File cannot be empty"
+            );
+        }
+
+        if (!FileConstants.PDF_CONTENT_TYPE.equals(file.getContentType())) {
+            throw new InvalidOperationException("Only PDF files are allowed");
+        }
+
+        if (file.getSize() > FileConstants.MAX_PDF_SIZE) {
+            throw new InvalidOperationException("File exceeds maximum allowed size of 50MB");
+        }
+    }
+
+    private String buildObjectKey(
+            Long paperId,
+            Integer version
+    ) {
+        return String.format(
+                "research-papers/%d/v%d.pdf",
+                paperId,
+                version
+        );
     }
 
     private void  validateSubmissionStatus(
@@ -468,5 +501,50 @@ public class ResearchPaperService {
 
         Page<ResearchPaper> papers = paperRepository.findAll(spec, pageable);
         return papers.map(mapper::toSummary);
+    }
+
+
+    @Transactional
+    public UploadPaperResponse uploadPaper(
+            Long paperId,
+            MultipartFile file
+    ) {
+        CurrentUser user = currentUserService.getCurrentUser();
+
+        ResearchPaper paper = getPaperEntity(paperId);
+
+        validateOwnership(paper);
+
+        validateUploadStatus(paper);
+
+        validatePdf(file);
+
+        String objectKey = buildObjectKey(
+                paper.getId(),
+                paper.getVersionNumber()
+        );
+
+        fileStorageService.uploadFile(
+                objectKey,
+                file
+        );
+
+        paper.setFileName(file.getOriginalFilename());
+        paper.setContentType(file.getContentType());
+        paper.setFileSize(file.getSize());
+        paper.setStorageKey(objectKey);
+
+        ResearchPaper saved = paperRepository.save(paper);
+        auditLogger.logPaperUploaded(saved, user.getId());
+        eventPublisher.publishPaperUploaded(saved);
+
+        return UploadPaperResponse.builder()
+                .paperId(saved.getId())
+                .fileName(saved.getFileName())
+                .contentType(saved.getContentType())
+                .fileSize(saved.getFileSize())
+                .versionNumber(saved.getVersionNumber())
+                .storageKey(saved.getStorageKey())
+                .build();
     }
 }

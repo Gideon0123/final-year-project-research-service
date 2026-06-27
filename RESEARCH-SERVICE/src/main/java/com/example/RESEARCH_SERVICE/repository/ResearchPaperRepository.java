@@ -23,6 +23,8 @@ public interface ResearchPaperRepository extends JpaRepository<ResearchPaper, Lo
 
     Optional<ResearchPaper> findByIdAndAuthorId(Long id, Long authorId);
 
+    boolean existsByIdAndAuthorId(Long paperId, Long authorId);
+
     Page<ResearchPaper> findByAuthorId(Long authorId, Pageable pageable);
 
     Page<ResearchPaper>findByStatusAndVisibility(

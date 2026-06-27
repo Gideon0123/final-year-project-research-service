@@ -11,4 +11,6 @@ public interface ResearchEventPublisher {
     void publishReviewerAssigned(ResearchPaper paper);
     void publishReviewCompleted(ResearchPaper paper);
     void publishResearchPublished(ResearchPaper paper);
+    void publishPaperUploaded(ResearchPaper paper);
+
 }

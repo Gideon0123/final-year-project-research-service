@@ -133,4 +133,16 @@ public class ResearchAuditLogger {
                 actorId
         );
     }
+
+    public void logPaperUploaded(
+            ResearchPaper paper,
+            Long userId
+    ) {
+        log.info(
+                "Paper uploaded. paperId={}, userId={}, file={}",
+                paper.getId(),
+                userId,
+                paper.getFileName()
+        );
+    }
 }
