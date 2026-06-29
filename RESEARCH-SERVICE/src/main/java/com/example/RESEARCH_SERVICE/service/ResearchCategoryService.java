@@ -12,8 +12,13 @@ import com.example.RESEARCH_SERVICE.mapper.ResearchCategoryMapper;
 import com.example.RESEARCH_SERVICE.payload.PagedResponse;
 import com.example.RESEARCH_SERVICE.repository.ResearchCategoryRepository;
 import com.example.RESEARCH_SERVICE.repository.specification.ResearchCategorySpecBuilder;
+import com.example.RESEARCH_SERVICE.utils.CacheKeys;
+import com.example.RESEARCH_SERVICE.utils.CacheNames;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +37,18 @@ public class ResearchCategoryService {
     private final ResearchCategoryMapper mapper;
     private final CurrentUserService currentUserService;
 
+    @Caching(
+            evict = {
+                    @CacheEvict(
+                            value = CacheNames.RESEARCH_CATEGORY,
+                            key = CacheKeys.CATEGORY_ALL
+                    ),
+                    @CacheEvict(
+                            value = CacheNames.RESEARCH_CATEGORY_SEARCH,
+                            allEntries = true
+                    )
+            }
+    )
     public CategoryResponse createCategory(
             CreateCategoryRequest request
     ) {
@@ -55,6 +72,10 @@ public class ResearchCategoryService {
         return mapper.toResponse(category);
     }
 
+    @Cacheable(
+            value = CacheNames.RESEARCH_CATEGORY,
+            key = CacheKeys.CATEGORY_ID
+    )
     @Transactional(readOnly = true)
     public CategoryResponse getCategoryById(
             Long id
@@ -65,6 +86,10 @@ public class ResearchCategoryService {
         return mapper.toResponse(category);
     }
 
+    @Cacheable(
+            value = CacheNames.RESEARCH_CATEGORY,
+            key = CacheKeys.CATEGORY_ALL
+    )
     @Transactional(readOnly = true)
     public PagedResponse<CategoryResponse> getAllCategories(
             int page, int size, String sortBy
@@ -76,6 +101,25 @@ public class ResearchCategoryService {
         return new PagedResponse<>(categoryPage);
     }
 
+    @Caching(
+            evict = {
+
+                    @CacheEvict(
+                            value = CacheNames.RESEARCH_CATEGORY,
+                            key = CacheKeys.CATEGORY_ID
+                    ),
+
+                    @CacheEvict(
+                            value = CacheNames.RESEARCH_CATEGORY,
+                            key = CacheKeys.CATEGORY_ALL
+                    ),
+
+                    @CacheEvict(
+                            value = CacheNames.RESEARCH_CATEGORY_SEARCH,
+                            allEntries = true
+                    )
+            }
+    )
     public CategoryResponse updateCategory(
             Long id,
             UpdateCategoryRequest request
@@ -107,6 +151,22 @@ public class ResearchCategoryService {
         return mapper.toResponse(category);
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(
+                            value = CacheNames.RESEARCH_CATEGORY,
+                            key = CacheKeys.CATEGORY_ID
+                    ),
+                    @CacheEvict(
+                            value = CacheNames.RESEARCH_CATEGORY,
+                            key = CacheKeys.CATEGORY_ALL
+                    ),
+                    @CacheEvict(
+                            value = CacheNames.RESEARCH_CATEGORY_SEARCH,
+                            allEntries = true
+                    )
+            }
+    )
     public void deleteCategory(
             Long id
     ) {
@@ -122,6 +182,10 @@ public class ResearchCategoryService {
         categoryRepository.delete(category);
     }
 
+    @Cacheable(
+            value = CacheNames.RESEARCH_CATEGORY_SEARCH,
+            key = CacheKeys.CATEGORY_SEARCH
+    )
     @Transactional
     public Page<CategoryResponse> searchCategories(
             String keyword,
