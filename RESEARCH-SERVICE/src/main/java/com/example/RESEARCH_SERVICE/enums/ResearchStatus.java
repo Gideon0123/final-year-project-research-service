@@ -8,5 +8,6 @@ public enum ResearchStatus {
     APPROVED,
     REJECTED,
     PUBLISHED,
+    DELETED,
     WITHDRAWN
 }

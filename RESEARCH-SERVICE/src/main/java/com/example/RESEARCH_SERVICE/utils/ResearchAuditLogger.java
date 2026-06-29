@@ -145,4 +145,16 @@ public class ResearchAuditLogger {
                 paper.getFileName()
         );
     }
+
+    public void logPaperDownloaded(
+            ResearchPaper paper,
+            Long userId
+    ) {
+        log.info(
+                "Paper downloaded. paperId={}, userId={}, file={}",
+                paper.getId(),
+                userId,
+                paper.getFileName()
+        );
+    }
 }

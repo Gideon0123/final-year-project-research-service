@@ -7,10 +7,12 @@ import com.example.RESEARCH_SERVICE.utils.TraceIdUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -363,5 +365,25 @@ public class ResearchPaperController {
                         .timestamp(LocalDateTime.now())
                         .build()
         );
+    }
+
+    @GetMapping("/{paperId}/download")
+    public ResponseEntity<InputStreamResource> downloadPaper(
+            @PathVariable Long paperId
+    ) {
+        FileDownloadResponse response = paperService.downloadPaper(paperId);
+
+        return ResponseEntity.ok()
+                .contentType(
+                        MediaType.parseMediaType(response.getContentType())
+                )
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" +
+                                response.getFileName() +
+                                "\""
+                )
+                .contentLength(response.getFileSize())
+                .body(new InputStreamResource(response.getInputStream()));
     }
 }

@@ -6,10 +6,7 @@ import com.example.RESEARCH_SERVICE.entity.ResearchCategory;
 import com.example.RESEARCH_SERVICE.entity.ResearchPaper;
 import com.example.RESEARCH_SERVICE.enums.ResearchStatus;
 import com.example.RESEARCH_SERVICE.enums.ResearchVisibility;
-import com.example.RESEARCH_SERVICE.exception.AccessDeniedException;
-import com.example.RESEARCH_SERVICE.exception.DuplicateResourceException;
-import com.example.RESEARCH_SERVICE.exception.InvalidOperationException;
-import com.example.RESEARCH_SERVICE.exception.ResourceNotFoundException;
+import com.example.RESEARCH_SERVICE.exception.*;
 import com.example.RESEARCH_SERVICE.mapper.ResearchPaperMapper;
 import com.example.RESEARCH_SERVICE.payload.PagedResponse;
 import com.example.RESEARCH_SERVICE.publisher.ResearchEventPublisher;
@@ -28,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -194,6 +192,24 @@ public class ResearchPaperService {
         if (paper.getStatus() != ResearchStatus.DRAFT) {
             throw new InvalidOperationException(
                     "Cannot Submit This Research Paper"
+            );
+        }
+    }
+
+    private void validateDownloadEligibility(
+            ResearchPaper paper
+    ) {
+        if (paper.getStorageKey() == null) {
+
+            throw new InvalidOperationException(
+                    "Research paper has no uploaded document."
+            );
+        }
+
+        if (paper.getStatus() == ResearchStatus.DELETED) {
+
+            throw new InvalidOperationException(
+                    "Research paper is unavailable."
             );
         }
     }
@@ -549,6 +565,43 @@ public class ResearchPaperService {
                 .fileSize(saved.getFileSize())
                 .versionNumber(saved.getVersionNumber())
                 .storageKey(saved.getStorageKey())
+                .build();
+    }
+
+    @Transactional
+    public FileDownloadResponse downloadPaper(
+            Long paperId
+    ) {
+        ResearchPaper paper = getPaperEntity(paperId);
+        validateDownloadEligibility(paper);
+
+        if (!fileStorageService.exists(paper.getStorageKey())) {
+
+            throw new FileStorageException(
+                    "Research file does not exist in storage."
+            );
+        }
+
+        InputStream inputStream = fileStorageService.downloadFile(
+                paper.getStorageKey()
+        );
+
+        paper.setDownloadCount(paper.getDownloadCount() + 1);
+
+        paperRepository.save(paper);
+
+        auditLogger.logPaperDownloaded(
+                paper,
+                currentUserService.getCurrentUser().getId()
+        );
+
+        eventPublisher.publishPaperDownloaded(paper);
+
+        return FileDownloadResponse.builder()
+                .inputStream(inputStream)
+                .fileName(paper.getFileName())
+                .contentType(paper.getContentType())
+                .fileSize(paper.getFileSize())
                 .build();
     }
 }

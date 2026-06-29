@@ -75,4 +75,12 @@ public class ResearchEventPublisherImpl implements ResearchEventPublisher {
                 paper.getId()
         );
     }
+
+    @Override
+    public void publishPaperDownloaded(ResearchPaper paper) {
+        log.info(
+                "Publishing paper downloaded event for paper {}",
+                paper.getId()
+        );
+    }
 }
