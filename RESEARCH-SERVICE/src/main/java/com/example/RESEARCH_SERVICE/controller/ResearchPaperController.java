@@ -392,7 +392,6 @@ public class ResearchPaperController {
             @PathVariable Long paperId,
             HttpServletRequest request
     ) {
-
         ResearchPaperResponse response = paperService.deleteUploadedFile(
                 paperId
         );
