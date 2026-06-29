@@ -386,4 +386,27 @@ public class ResearchPaperController {
                 .contentLength(response.getFileSize())
                 .body(new InputStreamResource(response.getInputStream()));
     }
+
+    @DeleteMapping("/{paperId}/file")
+    public ResponseEntity<ApiResponse<ResearchPaperResponse>> deleteUploadedFile(
+            @PathVariable Long paperId,
+            HttpServletRequest request
+    ) {
+
+        ResearchPaperResponse response = paperService.deleteUploadedFile(
+                paperId
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.<ResearchPaperResponse>builder()
+                        .success(true)
+                        .message("Research document deleted successfully.")
+                        .status(HttpStatus.OK.value())
+                        .data(response)
+                        .path(request.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
 }

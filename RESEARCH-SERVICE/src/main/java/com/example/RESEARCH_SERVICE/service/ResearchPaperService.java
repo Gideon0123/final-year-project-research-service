@@ -604,4 +604,33 @@ public class ResearchPaperService {
                 .fileSize(paper.getFileSize())
                 .build();
     }
+
+    @Transactional
+    public ResearchPaperResponse deleteUploadedFile(
+            Long paperId
+    ) {
+        ResearchPaper paper = getPaperEntity(paperId);
+        validateOwnership(paper);
+
+        if (paper.getStorageKey() == null) {
+            throw new InvalidOperationException("No uploaded document exists.");
+        }
+        if (fileStorageService.exists(paper.getStorageKey())) {
+            fileStorageService.deleteFile(paper.getStorageKey());
+        }
+
+        paper.setStorageKey(null);
+        paper.setFileName(null);
+        paper.setContentType(null);
+        paper.setFileSize(null);
+
+        ResearchPaper saved = paperRepository.save(paper);
+        auditLogger.logPaperFileDeleted(
+                saved,
+                currentUserService.getCurrentUser().getId()
+        );
+        eventPublisher.publishPaperFileDeleted(saved);
+
+        return mapper.toResponse(saved);
+    }
 }

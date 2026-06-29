@@ -83,4 +83,12 @@ public class ResearchEventPublisherImpl implements ResearchEventPublisher {
                 paper.getId()
         );
     }
+
+    @Override
+    public void publishPaperFileDeleted(ResearchPaper paper) {
+        log.info(
+                "Publishing paper deleted event for paper {}",
+                paper.getId()
+        );
+    }
 }

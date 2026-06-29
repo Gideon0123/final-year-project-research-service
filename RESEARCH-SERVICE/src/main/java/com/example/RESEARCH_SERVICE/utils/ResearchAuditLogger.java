@@ -157,4 +157,16 @@ public class ResearchAuditLogger {
                 paper.getFileName()
         );
     }
+
+    public void logPaperFileDeleted(
+            ResearchPaper paper,
+            Long userId
+    ) {
+        log.info(
+                "Paper deleted. paperId={}, userId={}, file={}",
+                paper.getId(),
+                userId,
+                paper.getFileName()
+        );
+    }
 }
