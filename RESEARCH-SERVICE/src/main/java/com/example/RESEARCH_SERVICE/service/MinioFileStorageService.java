@@ -73,7 +73,6 @@ public class MinioFileStorageService implements FileStorageService {
     ) {
         try {
             minioClient.removeObject(
-
                     RemoveObjectArgs.builder()
                             .bucket(minioProperties.getBucket())
                             .object(objectKey)
@@ -100,7 +99,6 @@ public class MinioFileStorageService implements FileStorageService {
             return true;
         }
         catch (Exception ex) {
-
             return false;
         }
     }

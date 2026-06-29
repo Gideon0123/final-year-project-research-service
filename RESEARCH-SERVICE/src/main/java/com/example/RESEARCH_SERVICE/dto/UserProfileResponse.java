@@ -6,15 +6,10 @@ import lombok.Builder;
 public record UserProfileResponse(
 
         Long id,
-
         String fullName,
-
         String email,
-
         String institution,
-
         String faculty,
-
         String department
 
 ) {}

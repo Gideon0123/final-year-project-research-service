@@ -21,14 +21,12 @@ public abstract class BaseEntity {
     public void onCreate() {
 
         LocalDateTime now = LocalDateTime.now();
-
         this.createdAt = now;
         this.updatedAt = now;
     }
 
     @PreUpdate
     public void onUpdate() {
-
         this.updatedAt = LocalDateTime.now();
     }
 }

@@ -98,7 +98,6 @@ public class ResearchPaperService {
             String sortBy,
             String sortDirection
     ) {
-
         Sort sort = sortDirection.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).ascending();
@@ -157,12 +156,8 @@ public class ResearchPaperService {
     private void validatePdf(
             MultipartFile file
     ) {
-
         if (file.isEmpty()) {
-
-            throw new InvalidOperationException(
-                    "File cannot be empty"
-            );
+            throw new InvalidOperationException("File cannot be empty");
         }
 
         if (!FileConstants.PDF_CONTENT_TYPE.equals(file.getContentType())) {
@@ -524,7 +519,6 @@ public class ResearchPaperService {
         ResearchPaper paper = getPaperEntity(paperId);
 
         validateFileNotAlreadyUploaded(paper);
-
         validateOwnership(paper);
         validateUploadStatus(paper);
         validatePdf(file);
