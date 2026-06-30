@@ -157,27 +157,24 @@ public class ResearchCategoryController {
                 Sort.by(sortBy)
         );
 
-        Page<CategoryResponse> categories = categoryService.searchCategories(
-
+        PagedResponse<CategoryResponse> categories = categoryService.searchCategories(
                 keyword,
                 id,
                 name,
                 pageable
         );
 
-        PagedResponse<CategoryResponse> response =
-                PagedResponse.<CategoryResponse>builder()
-                        .content(categories.getContent())
-                        .page(categories.getNumber() + 1)
-                        .size(categories.getSize())
-                        .totalElements(categories.getTotalElements())
-                        .totalPages(categories.getTotalPages())
-                        .first(categories.isFirst())
-                        .last(categories.isLast())
-                        .build();
+        PagedResponse<CategoryResponse> response = PagedResponse.<CategoryResponse>builder()
+                .content(categories.getContent())
+                .size(categories.getSize())
+                .page(categories.getPage())
+                .first(categories.isFirst())
+                .last(categories.isLast())
+                .totalElements(categories.getTotalElements())
+                .totalPages(categories.getTotalPages())
+                .build();
 
         return ResponseEntity.ok(
-
                 ApiResponse.<PagedResponse<CategoryResponse>>builder()
                         .success(true)
                         .message("Categories fetched successfully")

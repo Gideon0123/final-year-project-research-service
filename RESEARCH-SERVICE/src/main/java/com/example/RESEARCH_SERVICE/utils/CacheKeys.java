@@ -9,8 +9,10 @@ public final class CacheKeys {
     public static final String CATEGORY_ALL = "'all'";
 
     public static final String CATEGORY_SEARCH =
-            "'search:' + #keyword + ':' + #pageable.pageNumber + ':' + #pageable.pageSize" +
-                    " + ':' + #pageable.SortProperty + ':' + #pageable.sortDirection" ;
+            "'search:' + #keyword"
+                    + " + ':page=' + #pageable.pageNumber"
+                    + " + ':size=' + #pageable.pageSize"
+                    + " + ':sort=' + #pageable.sort.toString()";
 
     public static final String PAPER_ID = "'paper:' + #paperId";
 

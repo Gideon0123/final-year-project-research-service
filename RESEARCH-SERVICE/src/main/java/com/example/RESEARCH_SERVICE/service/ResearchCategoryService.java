@@ -82,6 +82,7 @@ public class ResearchCategoryService {
     ) {
         ResearchCategory category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
+        System.out.println("Coming From DataBase 2");
 
         return mapper.toResponse(category);
     }
@@ -97,6 +98,7 @@ public class ResearchCategoryService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         Page<CategoryResponse> categoryPage = categoryRepository.findAll(pageable)
                 .map(mapper::toResponse);
+        System.out.println("Coming From DataBase 1");
 
         return new PagedResponse<>(categoryPage);
     }
@@ -187,7 +189,7 @@ public class ResearchCategoryService {
             key = CacheKeys.CATEGORY_SEARCH
     )
     @Transactional
-    public Page<CategoryResponse> searchCategories(
+    public PagedResponse<CategoryResponse> searchCategories(
             String keyword,
             Long id,
             String name,
@@ -199,8 +201,8 @@ public class ResearchCategoryService {
                 name
         );
 
-        Page<ResearchCategory> page = categoryRepository.findAll(spec, pageable);
+        Page<CategoryResponse> page = categoryRepository.findAll(spec, pageable).map(mapper::toResponse);
 
-        return page.map(mapper::toResponse);
+        return new PagedResponse<>(page);
     }
 }
