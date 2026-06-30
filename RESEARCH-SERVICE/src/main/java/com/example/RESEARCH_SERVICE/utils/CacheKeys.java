@@ -21,11 +21,12 @@ public final class CacheKeys {
             "#page + ':' + #size + ':' + #sortBy + ':' + #sortDirection";
 
     public static final String MY_PAPERS =
-            "#root.target.currentUserService.currentUser.id" +
-                    " + ':' + #page + ':' + #size + ':' + #sortBy +" +
-                    " ':' + #sortDirection";
+            "'user:' + #userId"
+                    + " + ':page:' + #page"
+                    + " + ':size:' + #size"
+                    + " + ':sort:' + #sortBy"
+                    + " + ':dir:' + #sortDirection";
 
     public static final String PAPER_SEARCH =
             "#request.toCacheKey() + ':' + #pageable.pageNumber + ':' + #pageable.pageSize";
-
 }

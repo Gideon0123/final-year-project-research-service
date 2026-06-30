@@ -301,7 +301,6 @@ public class ResearchPaperService {
             Long paperId
     ) {
         ResearchPaper paper = getPaperEntity(paperId);
-
         validatePaperAccess(paper);
 
         return mapper.toResponse(paper);
@@ -319,7 +318,6 @@ public class ResearchPaperService {
             String sortDirection
     ) {
         Pageable pageable = buildPageable(page, size, sortBy, sortDirection);
-
         Page<ResearchPaperSummaryResponse> papers = paperRepository.findByStatusAndVisibility(
                 ResearchStatus.PUBLISHED,
                 ResearchVisibility.PUBLIC,
