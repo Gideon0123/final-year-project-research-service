@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -312,17 +311,17 @@ public class ResearchPaperController {
                 Sort.by(sortBy)
         );
 
-        Page<ResearchPaperSummaryResponse> papers = paperService.search(request, pageable);
+        PagedResponse<ResearchPaperSummaryResponse> papers = paperService.search(request, pageable);
 
         PagedResponse<ResearchPaperSummaryResponse> response =
                 PagedResponse.<ResearchPaperSummaryResponse>builder()
                         .content(papers.getContent())
-                        .page(papers.getNumber() + 1)
                         .size(papers.getSize())
-                        .totalElements(papers.getTotalElements())
-                        .totalPages(papers.getTotalPages())
+                        .page(papers.getPage())
                         .first(papers.isFirst())
                         .last(papers.isLast())
+                        .totalElements(papers.getTotalElements())
+                        .totalPages(papers.getTotalPages())
                         .build();
 
         return ResponseEntity.ok(

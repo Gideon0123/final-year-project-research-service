@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Data
 @Builder
@@ -23,4 +24,19 @@ public class ResearchPaperSearchRequest {
     private Long reviewerId;
     private LocalDateTime createdAfter;
     private LocalDateTime createdBefore;
+
+    public String toCacheKey() {
+
+        return String.join(":",
+                Objects.toString(keyword, ""),
+                Objects.toString(categoryId, ""),
+                Objects.toString(status, ""),
+                Objects.toString(visibility, ""),
+                Objects.toString(authorId, ""),
+                Objects.toString(reviewerId, ""),
+                Objects.toString(createdBefore, ""),
+                Objects.toString(createdAfter, "")
+        );
+
+    }
 }

@@ -14,8 +14,18 @@ public final class CacheKeys {
                     + " + ':size=' + #pageable.pageSize"
                     + " + ':sort=' + #pageable.sort.toString()";
 
-    public static final String PAPER_ID = "'paper:' + #paperId";
+    public static final String PAPER_ID =
+            "#paperId";
+
+    public static final String ALL_PAPERS =
+            "#page + ':' + #size + ':' + #sortBy + ':' + #sortDirection";
+
+    public static final String MY_PAPERS =
+            "#root.target.currentUserService.currentUser.id" +
+                    " + ':' + #page + ':' + #size + ':' + #sortBy +" +
+                    " ':' + #sortDirection";
 
     public static final String PAPER_SEARCH =
-            "#request.toString() + ':' + #pageable.pageNumber + ':' + #pageable.pageSize";
+            "#request.toCacheKey() + ':' + #pageable.pageNumber + ':' + #pageable.pageSize";
+
 }

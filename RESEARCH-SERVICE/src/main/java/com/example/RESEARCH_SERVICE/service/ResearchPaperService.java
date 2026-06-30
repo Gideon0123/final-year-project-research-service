@@ -13,9 +13,14 @@ import com.example.RESEARCH_SERVICE.publisher.ResearchEventPublisher;
 import com.example.RESEARCH_SERVICE.repository.ResearchCategoryRepository;
 import com.example.RESEARCH_SERVICE.repository.ResearchPaperRepository;
 import com.example.RESEARCH_SERVICE.repository.specification.ResearchPaperSpecification;
+import com.example.RESEARCH_SERVICE.utils.CacheKeys;
+import com.example.RESEARCH_SERVICE.utils.CacheNames;
 import com.example.RESEARCH_SERVICE.utils.FileConstants;
 import com.example.RESEARCH_SERVICE.utils.ResearchAuditLogger;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -214,6 +219,22 @@ public class ResearchPaperService {
         }
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.MY_RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPER_SEARCH,
+                            allEntries = true
+                    )
+            }
+    )
     @Transactional
     public ResearchPaperResponse createPaper(
             CreateResearchPaperRequest request
@@ -271,6 +292,10 @@ public class ResearchPaperService {
         return mapper.toResponse(saved);
     }
 
+//    @Cacheable(
+//            cacheNames = CacheNames.RESEARCH_PAPER,
+//            key = CacheKeys.PAPER_ID
+//    )
     @Transactional(readOnly = true)
     public ResearchPaperResponse getPaperById(
             Long paperId
@@ -282,6 +307,10 @@ public class ResearchPaperService {
         return mapper.toResponse(paper);
     }
 
+    @Cacheable(
+            cacheNames = CacheNames.RESEARCH_PAPERS,
+            key = CacheKeys.ALL_PAPERS
+    )
     @Transactional(readOnly = true)
     public PagedResponse<ResearchPaperSummaryResponse> getAllPapers(
             int page,
@@ -300,6 +329,10 @@ public class ResearchPaperService {
         return new PagedResponse<>(papers);
     }
 
+    @Cacheable(
+            cacheNames = CacheNames.MY_RESEARCH_PAPERS,
+            key = CacheKeys.MY_PAPERS
+    )
     @Transactional(readOnly = true)
     public PagedResponse<ResearchPaperSummaryResponse> getMyPapers(
             int page,
@@ -319,6 +352,22 @@ public class ResearchPaperService {
         return new PagedResponse<>(papers);
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.MY_RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPER_SEARCH,
+                            allEntries = true
+                    )
+            }
+    )
     @Transactional
     public ResearchPaperResponse updatePaper(
             Long paperId,
@@ -361,6 +410,22 @@ public class ResearchPaperService {
         return mapper.toResponse(saved);
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.MY_RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPER_SEARCH,
+                            allEntries = true
+                    )
+            }
+    )
     @Transactional
     public void deletePaper(
             Long paperId
@@ -387,6 +452,22 @@ public class ResearchPaperService {
         );
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.MY_RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPER_SEARCH,
+                            allEntries = true
+                    )
+            }
+    )
     @Transactional
     public ResearchPaperResponse submitPaper(
             Long paperId
@@ -418,6 +499,22 @@ public class ResearchPaperService {
         return mapper.toResponse(saved);
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.MY_RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPER_SEARCH,
+                            allEntries = true
+                    )
+            }
+    )
     @Transactional
     public ResearchPaperResponse assignReviewer(
             Long paperId,
@@ -456,6 +553,22 @@ public class ResearchPaperService {
         return mapper.toResponse(saved);
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.MY_RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPER_SEARCH,
+                            allEntries = true
+                    )
+            }
+    )
     @Transactional
     public ResearchPaperResponse changeStatus(
             Long paperId,
@@ -487,6 +600,22 @@ public class ResearchPaperService {
         return mapper.toResponse(saved);
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.MY_RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPER_SEARCH,
+                            allEntries = true
+                    )
+            }
+    )
     @Transactional
     public ResearchPaperResponse publishPaper(
             Long paperId
@@ -511,8 +640,12 @@ public class ResearchPaperService {
         return mapper.toResponse(saved);
     }
 
+    @Cacheable(
+            cacheNames = CacheNames.RESEARCH_PAPER_SEARCH,
+            key = CacheKeys.PAPER_SEARCH
+    )
     @Transactional(readOnly = true)
-    public Page<ResearchPaperSummaryResponse> search(
+    public PagedResponse<ResearchPaperSummaryResponse> search(
             ResearchPaperSearchRequest request,
             Pageable pageable
     ) {
@@ -520,11 +653,28 @@ public class ResearchPaperService {
                 request
         );
 
-        Page<ResearchPaper> papers = paperRepository.findAll(spec, pageable);
-        return papers.map(mapper::toSummary);
+        Page<ResearchPaperSummaryResponse> papers = paperRepository.findAll(spec, pageable)
+                .map(mapper::toSummary);
+
+        return new PagedResponse<>(papers);
     }
 
-
+    @Caching(
+            evict = {
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.MY_RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPER_SEARCH,
+                            allEntries = true
+                    )
+            }
+    )
     @Transactional
     public UploadPaperResponse uploadPaper(
             Long paperId,
@@ -605,6 +755,22 @@ public class ResearchPaperService {
                 .build();
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.MY_RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPER_SEARCH,
+                            allEntries = true
+                    )
+            }
+    )
     @Transactional
     public ResearchPaperResponse deleteUploadedFile(
             Long paperId
