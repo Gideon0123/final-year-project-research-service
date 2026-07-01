@@ -98,7 +98,6 @@ public class ResearchCategoryService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         Page<CategoryResponse> categoryPage = categoryRepository.findAll(pageable)
                 .map(mapper::toResponse);
-        System.out.println("Coming From DataBase 1");
 
         return new PagedResponse<>(categoryPage);
     }
