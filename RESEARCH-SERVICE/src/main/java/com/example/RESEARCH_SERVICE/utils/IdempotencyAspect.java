@@ -64,19 +64,12 @@ public class IdempotencyAspect {
 
         try {
 
-            Object response =
-                    joinPoint.proceed();
+            Object response = joinPoint.proceed();
 
             idempotencyService.complete(
-
                     userId,
-
                     key,
-
-                    response,
-
-                    HttpStatus.OK.value()
-
+                    response
             );
 
             return response;

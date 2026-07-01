@@ -12,65 +12,36 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class IdempotencyRecord implements Serializable {
+public class IdempotencyRecord {
 
-    /**
-     * Idempotency key supplied by client.
-     */
+    private Long userId;
+
     private String key;
 
-    /**
-     * Request fingerprint.
-     */
     private String fingerprint;
 
-    /**
-     * Processing state.
-     */
     private IdempotencyStatus status;
 
     /**
-     * HTTP Status.
-     */
-    private Integer httpStatus;
-
-    /**
-     * Serialized JSON response.
+     * Cached response body (JSON)
      */
     private String responseBody;
 
     /**
-     * Response Content-Type.
+     * Cached HTTP status
      */
+    private Integer httpStatus;
+
+    /**
+     * Usually application/json
+     */
+    @Builder.Default
     private String contentType = MediaType.APPLICATION_JSON_VALUE;
 
-    /**
-     * User who owns this request.
-     */
-    private Long userId;
-
-    /**
-     * Endpoint.
-     */
-    private String endpoint;
-
-    /**
-     * HTTP Method.
-     */
-    private String httpMethod;
-
-    /**
-     * Created.
-     */
     private LocalDateTime createdAt;
 
-    /**
-     * Last updated.
-     */
-    private LocalDateTime updatedAt;
+    private LocalDateTime completedAt;
 
     private LocalDateTime expiresAt;
-
-    private LocalDateTime completedAt;
 
 }

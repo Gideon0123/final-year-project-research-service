@@ -13,6 +13,7 @@ import com.example.RESEARCH_SERVICE.utils.IdempotencyStateResolver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -98,23 +99,48 @@ public class IdempotencyService {
     public void complete(
             Long userId,
             String key,
-            Object response,
-            int status
+            Object response
     ) throws JsonProcessingException {
+
         IdempotencyRecord record = repository.find(userId, key)
                 .orElseThrow();
 
+        int status = HttpStatus.OK.value();
+
+        Object body = response;
+
+        if (response instanceof ResponseEntity<?> entity) {
+
+            status = entity.getStatusCode().value();
+
+            body = entity.getBody();
+
+        }
+
         record.setStatus(IdempotencyStatus.COMPLETED);
-        record.setResponseBody(objectMapper.writeValueAsString(response));
-        record.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
         record.setHttpStatus(status);
+
+        record.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+        record.setResponseBody(
+
+                objectMapper.writeValueAsString(body)
+
+        );
+
         record.setCompletedAt(LocalDateTime.now());
 
         repository.save(
+
                 userId,
+
                 key,
+
                 record,
+
                 Duration.ofMinutes(properties.getExpirationMinutes())
+
         );
 
     }
@@ -133,7 +159,6 @@ public class IdempotencyService {
             Long userId,
             String key
     ) {
-
         IdempotencyRecord record =
                 repository.find(userId, key)
                         .orElseThrow();
@@ -141,10 +166,12 @@ public class IdempotencyService {
         return ResponseEntity
                 .status(record.getHttpStatus())
                 .contentType(
-                        MediaType.valueOf(record.getContentType())
+                        MediaType.parseMediaType(
+                                record.getContentType()
+                        )
+
                 )
                 .body(record.getResponseBody());
-
     }
 
     private void createProcessingRecord(

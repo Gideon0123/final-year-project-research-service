@@ -3,6 +3,7 @@ package com.example.RESEARCH_SERVICE.controller;
 import com.example.RESEARCH_SERVICE.dto.*;
 import com.example.RESEARCH_SERVICE.payload.PagedResponse;
 import com.example.RESEARCH_SERVICE.service.ResearchPaperService;
+import com.example.RESEARCH_SERVICE.utils.Idempotent;
 import com.example.RESEARCH_SERVICE.utils.TraceIdUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -30,6 +31,7 @@ public class ResearchPaperController {
 
     private final ResearchPaperService paperService;
 
+    @Idempotent
     @PostMapping
     public ResponseEntity <ApiResponse<ResearchPaperResponse>> createPaper(
             @Valid @RequestBody CreateResearchPaperRequest request,
@@ -158,6 +160,7 @@ public class ResearchPaperController {
         );
     }
 
+    @Idempotent
     @PutMapping("/{paperId}")
     public ResponseEntity<ApiResponse<ResearchPaperResponse>> updatePaper(
             @PathVariable Long paperId,
@@ -199,6 +202,7 @@ public class ResearchPaperController {
         return ResponseEntity.ok(response);
     }
 
+    @Idempotent
     @PatchMapping("/{paperId}/submit")
     public ResponseEntity<ApiResponse<ResearchPaperResponse>> submitPaper(
             @PathVariable Long paperId,
@@ -222,6 +226,7 @@ public class ResearchPaperController {
         );
     }
 
+    @Idempotent
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{paperId}/assign-reviewer")
     public ResponseEntity<ApiResponse<ResearchPaperResponse>> assignReviewer(
@@ -247,6 +252,7 @@ public class ResearchPaperController {
         );
     }
 
+    @Idempotent
     @PreAuthorize("hasAnyRole('ADMIN', 'REVIEWER')")
     @PatchMapping("/{paperId}/status")
     public ResponseEntity<ApiResponse<ResearchPaperResponse>> changeStatus(
@@ -272,6 +278,7 @@ public class ResearchPaperController {
         );
     }
 
+    @Idempotent
     @PreAuthorize("hasAnyRole('ADMIN', 'REVIEWER')")
     @PatchMapping("/{paperId}/publish")
     public ResponseEntity<ApiResponse<ResearchPaperResponse>> publishPaper(
@@ -339,6 +346,7 @@ public class ResearchPaperController {
         );
     }
 
+    @Idempotent
     @PostMapping(
             value = "/{paperId}/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -386,6 +394,7 @@ public class ResearchPaperController {
                 .body(new InputStreamResource(response.getInputStream()));
     }
 
+    @Idempotent
     @DeleteMapping("/{paperId}/file")
     public ResponseEntity<ApiResponse<ResearchPaperResponse>> deleteUploadedFile(
             @PathVariable Long paperId,
