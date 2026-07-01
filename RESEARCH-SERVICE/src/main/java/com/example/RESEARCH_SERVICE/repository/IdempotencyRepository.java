@@ -19,13 +19,11 @@ public class IdempotencyRepository {
             Long userId,
             String key
     ) {
-
         String redisKey = IdempotencyKeyUtil.buildKey(userId, key);
 
         return Optional.ofNullable(
                 redisTemplate.opsForValue().get(redisKey)
         );
-
     }
 
     public void save(
@@ -34,24 +32,13 @@ public class IdempotencyRepository {
             IdempotencyRecord record,
             Duration ttl
     ) {
+        String redisKey = IdempotencyKeyUtil.buildKey(userId, key);
 
-        String redisKey =
-                IdempotencyKeyUtil.buildKey(userId, key);
-
-        redisTemplate.opsForValue()
-                .set(redisKey, record, ttl);
-
+        redisTemplate.opsForValue().set(redisKey, record, ttl);
     }
 
-    public void delete(
-            Long userId,
-            String key
-    ) {
-
-        redisTemplate.delete(
-                IdempotencyKeyUtil.buildKey(userId, key)
-        );
-
+    public void delete(Long userId, String key) {
+        redisTemplate.delete(IdempotencyKeyUtil.buildKey(userId, key));
     }
 
     public boolean exists(

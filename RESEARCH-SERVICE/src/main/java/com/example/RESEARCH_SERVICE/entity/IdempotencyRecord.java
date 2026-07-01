@@ -68,4 +68,8 @@ public class IdempotencyRecord implements Serializable {
      */
     private LocalDateTime updatedAt;
 
+    private LocalDateTime expiresAt;
+
+    private LocalDateTime completedAt;
+
 }

@@ -23,29 +23,21 @@ public class FingerprintService {
                     fingerprint.getRequestBody()
             );
 
-            String payload =
-                    fingerprint.getUserId()
-                            + "|"
-                            + fingerprint.getHttpMethod()
-                            + "|"
-                            + fingerprint.getEndpoint()
-                            + "|"
-                            + normalizedBody;
+            String payload = fingerprint.getUserId()
+                    + "|"
+                    + fingerprint.getHttpMethod()
+                    + "|"
+                    + fingerprint.getEndpoint()
+                    + "|"
+                    + normalizedBody;
 
-            MessageDigest digest =
-                    MessageDigest.getInstance("SHA-256");
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
-            byte[] hash =
-                    digest.digest(
-                            payload.getBytes(StandardCharsets.UTF_8)
-                    );
-
+            byte[] hash = digest.digest(payload.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(hash);
-
         }
 
         catch (Exception ex) {
-
             throw new RuntimeException(
                     "Unable to generate request fingerprint",
                     ex
@@ -56,26 +48,17 @@ public class FingerprintService {
     }
 
     private String normalizeJson(String json) {
-
         try {
-
             if (json == null || json.isBlank()) {
                 return "";
             }
-
-            JsonNode node =
-                    objectMapper.readTree(json);
+            JsonNode node = objectMapper.readTree(json);
 
             return objectMapper.writeValueAsString(node);
-
         }
 
         catch (Exception ex) {
-
             return json;
-
         }
-
     }
-
 }
