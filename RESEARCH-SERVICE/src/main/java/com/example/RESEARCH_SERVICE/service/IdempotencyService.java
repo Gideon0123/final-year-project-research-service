@@ -13,6 +13,8 @@ import com.example.RESEARCH_SERVICE.utils.IdempotencyStateResolver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -88,7 +90,6 @@ public class IdempotencyService {
             Long userId,
             String key
     ) {
-
         return repository.find(userId, key)
                 .orElseThrow()
                 .getResponseBody();
@@ -105,6 +106,7 @@ public class IdempotencyService {
 
         record.setStatus(IdempotencyStatus.COMPLETED);
         record.setResponseBody(objectMapper.writeValueAsString(response));
+        record.setContentType(MediaType.APPLICATION_JSON_VALUE);
         record.setHttpStatus(status);
         record.setCompletedAt(LocalDateTime.now());
 
@@ -125,6 +127,24 @@ public class IdempotencyService {
                 userId,
                 key
         );
+    }
+
+    public ResponseEntity<String> buildCachedResponse(
+            Long userId,
+            String key
+    ) {
+
+        IdempotencyRecord record =
+                repository.find(userId, key)
+                        .orElseThrow();
+
+        return ResponseEntity
+                .status(record.getHttpStatus())
+                .contentType(
+                        MediaType.valueOf(record.getContentType())
+                )
+                .body(record.getResponseBody());
+
     }
 
     private void createProcessingRecord(

@@ -2,6 +2,7 @@ package com.example.RESEARCH_SERVICE.entity;
 
 import com.example.RESEARCH_SERVICE.enums.IdempotencyStatus;
 import lombok.*;
+import org.springframework.http.MediaType;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -41,7 +42,7 @@ public class IdempotencyRecord implements Serializable {
     /**
      * Response Content-Type.
      */
-    private String contentType;
+    private String contentType = MediaType.APPLICATION_JSON_VALUE;
 
     /**
      * User who owns this request.
