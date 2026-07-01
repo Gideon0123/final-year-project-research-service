@@ -35,6 +35,14 @@ public class GlobalExceptionHandler {
         return buildResponse(ex.getMessage(), HttpStatus.CONFLICT.value(), request);
     }
 
+    @ExceptionHandler(IdempotencyConflictException.class)
+    public ResponseEntity<ApiResponse<Object>> handleIdempotencyConflict(
+            IdempotencyConflictException ex,
+            HttpServletRequest request
+    ) {
+        return buildResponse(ex.getMessage(), HttpStatus.CONFLICT.value(), request);
+    }
+
 //    @ExceptionHandler(RateLimitExceededException.class)
 //    public ResponseEntity<ApiResponse<Object>> handleRateLimitExceeded(
 //            RateLimitExceededException ex,
@@ -46,6 +54,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ApiResponse<Object>> handleUserNotFound(
             UserNotFoundException ex,
+            HttpServletRequest request
+    ) {
+        return buildResponse(ex.getMessage(), HttpStatus.NOT_FOUND.value(), request);
+    }
+
+    @ExceptionHandler(MissingIdempotencyKeyException.class)
+    public ResponseEntity<ApiResponse<Object>> handleMissingIdempotencyKey(
+            MissingIdempotencyKeyException ex,
             HttpServletRequest request
     ) {
         return buildResponse(ex.getMessage(), HttpStatus.NOT_FOUND.value(), request);
@@ -78,6 +94,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiResponse<Object>> handleBadRequest(
             BadRequestException ex,
+            HttpServletRequest request
+    ) {
+        return buildResponse(ex.getMessage(), HttpStatus.BAD_REQUEST.value(), request);
+    }
+
+    @ExceptionHandler(IdempotencyProcessingException.class)
+    public ResponseEntity<ApiResponse<Object>> handleIdempotencyProcessing(
+            IdempotencyProcessingException ex,
             HttpServletRequest request
     ) {
         return buildResponse(ex.getMessage(), HttpStatus.BAD_REQUEST.value(), request);

@@ -6,6 +6,7 @@ import com.example.RESEARCH_SERVICE.dto.CreateCategoryRequest;
 import com.example.RESEARCH_SERVICE.dto.UpdateCategoryRequest;
 import com.example.RESEARCH_SERVICE.payload.PagedResponse;
 import com.example.RESEARCH_SERVICE.service.ResearchCategoryService;
+import com.example.RESEARCH_SERVICE.utils.Idempotent;
 import com.example.RESEARCH_SERVICE.utils.TraceIdUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -27,6 +28,7 @@ public class ResearchCategoryController {
 
     private final ResearchCategoryService categoryService;
 
+    @Idempotent
     @PostMapping
     public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(
             @Valid @RequestBody CreateCategoryRequest request,
@@ -105,6 +107,7 @@ public class ResearchCategoryController {
         );
     }
 
+    @Idempotent
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
             @PathVariable Long id,

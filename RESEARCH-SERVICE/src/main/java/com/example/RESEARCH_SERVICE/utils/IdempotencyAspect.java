@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
 
@@ -33,12 +32,12 @@ public class IdempotencyAspect {
 
     private final ObjectMapper objectMapper;
 
-    @Around("@annotation(com.example.RESEARCH_SERVICE.utils)")
+    @Around("@annotation(com.example.RESEARCH_SERVICE.utils.Idempotent)")
     public Object handleIdempotency(
-
             ProceedingJoinPoint joinPoint
-
     ) throws Throwable {
+
+        System.out.println("INSIDE IDEMPOTENCY ASPECT");
 
         String key = extractKey();
 
@@ -54,37 +53,40 @@ public class IdempotencyAspect {
                 );
 
         if (result.isCompleted()) {
-
             return idempotencyService.buildCachedResponse(
                     userId,
                     key
             );
-
         }
+
+        Object response;
 
         try {
 
-            Object response = joinPoint.proceed();
-
-            idempotencyService.complete(
-                    userId,
-                    key,
-                    response
-            );
-
-            return response;
+            response = joinPoint.proceed();
 
         }
-        catch (Throwable ex) {
+        catch (Throwable ex){
 
             idempotencyService.fail(
+
                     userId,
+
                     key
+
             );
 
             throw ex;
 
         }
+
+        idempotencyService.complete(
+                userId,
+                key,
+                response
+        );
+
+        return response;
 
     }
 

@@ -21,7 +21,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final GatewayAuthenticationFilter authenticationFilter;
-//    private final RateLimitingFilter rateLimitingFilter;
     private final CustomAuthenticationEntryPoint entryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
 
@@ -55,10 +54,6 @@ public class SecurityConfig {
                         authenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
                 )
-//                .addFilterAfter(
-//                        rateLimitingFilter,
-//                        GatewayAuthenticationFilter.class
-//                )
 
                 .exceptionHandling(ex -> ex
                                 .authenticationEntryPoint(entryPoint)

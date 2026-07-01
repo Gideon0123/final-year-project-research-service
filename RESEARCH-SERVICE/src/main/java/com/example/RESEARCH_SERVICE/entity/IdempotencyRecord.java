@@ -4,7 +4,6 @@ import com.example.RESEARCH_SERVICE.enums.IdempotencyStatus;
 import lombok.*;
 import org.springframework.http.MediaType;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Getter

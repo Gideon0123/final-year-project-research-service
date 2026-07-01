@@ -102,34 +102,38 @@ public class IdempotencyService {
             Object response
     ) throws JsonProcessingException {
 
-        IdempotencyRecord record = repository.find(userId, key)
-                .orElseThrow();
+        IdempotencyRecord record =
+                repository.find(userId, key)
+                        .orElseThrow();
 
-        int status = HttpStatus.OK.value();
+        ResponseEntity<?> entity =
+                (ResponseEntity<?>) response;
 
-        Object body = response;
+        record.setStatus(
+                IdempotencyStatus.COMPLETED
+        );
 
-        if (response instanceof ResponseEntity<?> entity) {
+        record.setHttpStatus(
+                entity.getStatusCode().value()
+        );
 
-            status = entity.getStatusCode().value();
-
-            body = entity.getBody();
-
-        }
-
-        record.setStatus(IdempotencyStatus.COMPLETED);
-
-        record.setHttpStatus(status);
-
-        record.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        record.setContentType(
+                MediaType.APPLICATION_JSON_VALUE
+        );
 
         record.setResponseBody(
 
-                objectMapper.writeValueAsString(body)
+                objectMapper.writeValueAsString(
+
+                        entity.getBody()
+
+                )
 
         );
 
-        record.setCompletedAt(LocalDateTime.now());
+        record.setCompletedAt(
+                LocalDateTime.now()
+        );
 
         repository.save(
 
@@ -139,7 +143,9 @@ public class IdempotencyService {
 
                 record,
 
-                Duration.ofMinutes(properties.getExpirationMinutes())
+                Duration.ofMinutes(
+                        properties.getExpirationMinutes()
+                )
 
         );
 
@@ -159,19 +165,27 @@ public class IdempotencyService {
             Long userId,
             String key
     ) {
+
         IdempotencyRecord record =
                 repository.find(userId, key)
                         .orElseThrow();
 
         return ResponseEntity
-                .status(record.getHttpStatus())
+
+                .status(
+                        record.getHttpStatus()
+                )
+
                 .contentType(
                         MediaType.parseMediaType(
                                 record.getContentType()
                         )
-
                 )
-                .body(record.getResponseBody());
+
+                .body(
+                        record.getResponseBody()
+                );
+
     }
 
     private void createProcessingRecord(
