@@ -17,8 +17,7 @@ public class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
 
         super(request);
 
-        this.cachedBody =
-                request.getInputStream().readAllBytes();
+        this.cachedBody = request.getInputStream().readAllBytes();
 
     }
 
@@ -57,11 +56,8 @@ public class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
     public BufferedReader getReader() {
 
         return new BufferedReader(
-
                 new InputStreamReader(
-
                         getInputStream(),
-
                         StandardCharsets.UTF_8
 
                 )

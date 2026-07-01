@@ -3,11 +3,13 @@ package com.example.RESEARCH_SERVICE.service;
 import com.example.RESEARCH_SERVICE.entity.IdempotencyRecord;
 import com.example.RESEARCH_SERVICE.entity.IdempotencyResult;
 import com.example.RESEARCH_SERVICE.entity.RequestFingerprint;
+import com.example.RESEARCH_SERVICE.enums.IdempotencyState;
 import com.example.RESEARCH_SERVICE.enums.IdempotencyStatus;
 import com.example.RESEARCH_SERVICE.exception.IdempotencyConflictException;
 import com.example.RESEARCH_SERVICE.exception.IdempotencyProcessingException;
 import com.example.RESEARCH_SERVICE.repository.IdempotencyRepository;
 import com.example.RESEARCH_SERVICE.utils.IdempotencyProperties;
+import com.example.RESEARCH_SERVICE.utils.IdempotencyStateResolver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -25,54 +27,60 @@ public class IdempotencyService {
     private final FingerprintService fingerprintService;
     private final IdempotencyProperties properties;
     private final ObjectMapper objectMapper;
+    private final IdempotencyStateResolver stateResolver;
 
     public IdempotencyResult begin(
             String idempotencyKey,
             RequestFingerprint fingerprint
     ) {
-        String fingerprintHash = fingerprintService.generate(fingerprint);
-        Optional<IdempotencyRecord> existing = repository.find(fingerprint.getUserId(), idempotencyKey);
+        Long userId = fingerprint.getUserId();
 
-        if (existing.isEmpty()) {
-            createProcessingRecord(
-                    idempotencyKey,
-                    fingerprintHash
-            );
+        String fingerprintHash =
+                fingerprintService.generate(fingerprint);
 
-            return IdempotencyResult.builder()
-                    .proceed(true)
-                    .completed(false)
-                    .build();
+        Optional<IdempotencyRecord> existing =
+                repository.find(
+                        userId,
+                        idempotencyKey
+                );
 
-        }
-
-        IdempotencyRecord record = existing.get();
-
-        validateFingerprint(
-                record,
+        IdempotencyState state = stateResolver.resolve(
+                existing,
                 fingerprintHash
         );
 
-        if (record.getStatus() == IdempotencyStatus.PROCESSING) {
-            throw new IdempotencyProcessingException(
-                    "Request is already being processed."
-            );
-        }
+        return switch (state) {
 
-        if (record.getStatus() == IdempotencyStatus.COMPLETED) {
+            case NOT_FOUND -> {
 
-            return IdempotencyResult.builder()
-                    .completed(true)
-                    .record(record)
-                    .build();
+                createProcessingRecord(
+                        userId,
+                        idempotencyKey,
+                        fingerprintHash
+                );
 
-        }
+                yield IdempotencyResult.builder()
+                        .proceed(true)
+                        .build();
+            }
 
-        createProcessingRecord(idempotencyKey, fingerprintHash);
+            case PROCESSING ->
+                    throw new IdempotencyProcessingException(
+                            "Request already processing."
+                    );
 
-        return IdempotencyResult.builder()
-                .proceed(true)
-                .build();
+            case FINGERPRINT_MISMATCH ->
+                    throw new IdempotencyConflictException(
+                            "Idempotency-Key already used with another request."
+                    );
+
+            case COMPLETED ->
+
+                    IdempotencyResult.builder()
+                            .completed(true)
+                            .record(existing.get())
+                            .build();
+        };
 
     }
 
@@ -120,28 +128,32 @@ public class IdempotencyService {
     }
 
     private void createProcessingRecord(
+            Long userId,
             String key,
             String fingerprint
     ) {
-        IdempotencyRecord record = IdempotencyRecord.builder()
-                .key(key)
-                .status(IdempotencyStatus.PROCESSING)
-                .fingerprint(fingerprint)
-                .createdAt(LocalDateTime.now())
-                .expiresAt(
-                        LocalDateTime.now()
+        IdempotencyRecord record =
+                IdempotencyRecord.builder()
+                        .userId(userId)
+                        .key(key)
+                        .fingerprint(fingerprint)
+                        .status(IdempotencyStatus.PROCESSING)
+                        .createdAt(LocalDateTime.now())
+                        .expiresAt(LocalDateTime.now()
                                 .plusMinutes(
                                         properties.getExpirationMinutes()
                                 )
+                        )
+                        .build();
 
+        repository.save(
+                userId,
+                key,
+                record,
+                Duration.ofMinutes(
+                        properties.getExpirationMinutes()
                 )
-                .build();
-
-        Duration ttl = Duration.ofMinutes(
-                properties.getExpirationMinutes()
         );
-
-        repository.save(record.getUserId(), key, record, ttl);
     }
 
     private void validateFingerprint(
