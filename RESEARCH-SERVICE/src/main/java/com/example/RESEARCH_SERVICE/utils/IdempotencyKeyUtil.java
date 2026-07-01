@@ -8,14 +8,11 @@ public final class IdempotencyKeyUtil {
     }
 
     public static String buildKey(Long userId, String idempotencyKey) {
-
         return String.format(
                 "%s:user:%d:%s",
                 PREFIX,
                 userId,
                 idempotencyKey
         );
-
     }
-
 }

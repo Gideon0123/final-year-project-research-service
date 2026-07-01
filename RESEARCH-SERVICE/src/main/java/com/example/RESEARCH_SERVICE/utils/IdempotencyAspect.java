@@ -25,32 +25,26 @@ import java.util.List;
 public class IdempotencyAspect {
 
     private final HttpServletRequest request;
-
     private final CurrentUserService currentUserService;
-
     private final IdempotencyService idempotencyService;
-
     private final ObjectMapper objectMapper;
 
-    @Around("@annotation(com.example.RESEARCH_SERVICE.utils.Idempotent)")
+    @Around("@annotation(idempotent)")
     public Object handleIdempotency(
-            ProceedingJoinPoint joinPoint
+            ProceedingJoinPoint joinPoint,
+            Idempotent idempotent
     ) throws Throwable {
 
-        System.out.println("INSIDE IDEMPOTENCY ASPECT");
-
         String key = extractKey();
-
         Long userId = getUserId();
+        long ttl = idempotent.ttlMinutes();
+        RequestFingerprint fingerprint = buildFingerprint(joinPoint);
 
-        RequestFingerprint fingerprint =
-                buildFingerprint(joinPoint);
-
-        IdempotencyResult result =
-                idempotencyService.begin(
-                        key,
-                        fingerprint
-                );
+        IdempotencyResult result = idempotencyService.begin(
+                key,
+                fingerprint,
+                ttl
+        );
 
         if (result.isCompleted()) {
             return idempotencyService.buildCachedResponse(
@@ -62,89 +56,55 @@ public class IdempotencyAspect {
         Object response;
 
         try {
-
             response = joinPoint.proceed();
-
         }
         catch (Throwable ex){
-
-            idempotencyService.fail(
-
-                    userId,
-
-                    key
-
-            );
-
+            idempotencyService.fail(userId, key);
             throw ex;
-
         }
 
         idempotencyService.complete(
                 userId,
                 key,
-                response
+                response,
+                ttl
         );
 
         return response;
-
     }
 
     private String extractKey() {
 
-        String key =
-                request.getHeader("Idempotency-Key");
+        String key = request.getHeader("Idempotency-Key");
 
         if (key == null || key.isBlank()) {
-
             throw new MissingIdempotencyKeyException(
                     "Idempotency-Key header is required."
             );
-
         }
 
         return key;
-
     }
 
     private Long getUserId() {
 
-        return currentUserService
-                .getCurrentUser()
-                .getId();
-
+        return currentUserService.getCurrentUser().getId();
     }
 
     private RequestFingerprint buildFingerprint(
-
             ProceedingJoinPoint joinPoint
-
     ) throws JsonProcessingException {
-
         List<Object> args = Arrays.stream(joinPoint.getArgs())
-
                 .filter(arg -> !(arg instanceof HttpServletRequest))
-
                 .filter(arg -> !(arg instanceof HttpServletResponse))
-
                 .filter(arg -> !(arg instanceof BindingResult))
-
                 .toList();
 
         return RequestFingerprint.builder()
-
                 .userId(getUserId())
-
                 .httpMethod(request.getMethod())
-
                 .endpoint(request.getRequestURI())
-
-                .requestBody(
-                        objectMapper.writeValueAsString(args)
-                )
-
+                .requestBody(objectMapper.writeValueAsString(args))
                 .build();
-
     }
-
 }

@@ -31,7 +31,7 @@ public class ResearchPaperController {
 
     private final ResearchPaperService paperService;
 
-    @Idempotent
+    @Idempotent(ttlMinutes = 10)
     @PostMapping
     public ResponseEntity <ApiResponse<ResearchPaperResponse>> createPaper(
             @Valid @RequestBody CreateResearchPaperRequest request,
@@ -160,7 +160,7 @@ public class ResearchPaperController {
         );
     }
 
-    @Idempotent
+    @Idempotent(ttlMinutes = 3)
     @PutMapping("/{paperId}")
     public ResponseEntity<ApiResponse<ResearchPaperResponse>> updatePaper(
             @PathVariable Long paperId,
@@ -202,7 +202,7 @@ public class ResearchPaperController {
         return ResponseEntity.ok(response);
     }
 
-    @Idempotent
+    @Idempotent(ttlMinutes = 1)
     @PatchMapping("/{paperId}/submit")
     public ResponseEntity<ApiResponse<ResearchPaperResponse>> submitPaper(
             @PathVariable Long paperId,
@@ -226,7 +226,7 @@ public class ResearchPaperController {
         );
     }
 
-    @Idempotent
+    @Idempotent(ttlMinutes = 10)
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{paperId}/assign-reviewer")
     public ResponseEntity<ApiResponse<ResearchPaperResponse>> assignReviewer(
@@ -252,7 +252,7 @@ public class ResearchPaperController {
         );
     }
 
-    @Idempotent
+    @Idempotent(ttlMinutes = 2)
     @PreAuthorize("hasAnyRole('ADMIN', 'REVIEWER')")
     @PatchMapping("/{paperId}/status")
     public ResponseEntity<ApiResponse<ResearchPaperResponse>> changeStatus(
@@ -278,7 +278,7 @@ public class ResearchPaperController {
         );
     }
 
-    @Idempotent
+    @Idempotent(ttlMinutes = 2)
     @PreAuthorize("hasAnyRole('ADMIN', 'REVIEWER')")
     @PatchMapping("/{paperId}/publish")
     public ResponseEntity<ApiResponse<ResearchPaperResponse>> publishPaper(
@@ -346,7 +346,7 @@ public class ResearchPaperController {
         );
     }
 
-    @Idempotent
+    @Idempotent(ttlMinutes = 5)
     @PostMapping(
             value = "/{paperId}/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -394,7 +394,7 @@ public class ResearchPaperController {
                 .body(new InputStreamResource(response.getInputStream()));
     }
 
-    @Idempotent
+    @Idempotent(ttlMinutes = 1)
     @DeleteMapping("/{paperId}/file")
     public ResponseEntity<ApiResponse<ResearchPaperResponse>> deleteUploadedFile(
             @PathVariable Long paperId,

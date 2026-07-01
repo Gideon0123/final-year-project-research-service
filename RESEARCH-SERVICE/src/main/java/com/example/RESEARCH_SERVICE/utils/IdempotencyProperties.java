@@ -11,9 +11,6 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "idempotency")
 public class IdempotencyProperties {
 
-    /**
-     * Default expiration in minutes.
-     */
-    private long expirationMinutes = 30;
+    private long expirationMinutes = 20;
 
 }

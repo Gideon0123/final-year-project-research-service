@@ -28,7 +28,7 @@ public class ResearchCategoryController {
 
     private final ResearchCategoryService categoryService;
 
-    @Idempotent
+    @Idempotent(ttlMinutes = 2)
     @PostMapping
     public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(
             @Valid @RequestBody CreateCategoryRequest request,
@@ -107,7 +107,7 @@ public class ResearchCategoryController {
         );
     }
 
-    @Idempotent
+    @Idempotent(ttlMinutes = 2)
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
             @PathVariable Long id,

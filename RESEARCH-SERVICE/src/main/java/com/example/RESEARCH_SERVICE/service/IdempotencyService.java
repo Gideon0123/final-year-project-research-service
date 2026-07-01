@@ -13,7 +13,6 @@ import com.example.RESEARCH_SERVICE.utils.IdempotencyStateResolver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -34,18 +33,17 @@ public class IdempotencyService {
 
     public IdempotencyResult begin(
             String idempotencyKey,
-            RequestFingerprint fingerprint
+            RequestFingerprint fingerprint,
+            long ttl
     ) {
         Long userId = fingerprint.getUserId();
 
-        String fingerprintHash =
-                fingerprintService.generate(fingerprint);
+        String fingerprintHash = fingerprintService.generate(fingerprint);
 
-        Optional<IdempotencyRecord> existing =
-                repository.find(
-                        userId,
-                        idempotencyKey
-                );
+        Optional<IdempotencyRecord> existing = repository.find(
+                userId,
+                idempotencyKey
+        );
 
         IdempotencyState state = stateResolver.resolve(
                 existing,
@@ -55,13 +53,12 @@ public class IdempotencyService {
         return switch (state) {
 
             case NOT_FOUND -> {
-
                 createProcessingRecord(
                         userId,
                         idempotencyKey,
-                        fingerprintHash
+                        fingerprintHash,
+                        ttl
                 );
-
                 yield IdempotencyResult.builder()
                         .proceed(true)
                         .build();
@@ -78,7 +75,6 @@ public class IdempotencyService {
                     );
 
             case COMPLETED ->
-
                     IdempotencyResult.builder()
                             .completed(true)
                             .record(existing.get())
@@ -99,56 +95,30 @@ public class IdempotencyService {
     public void complete(
             Long userId,
             String key,
-            Object response
+            Object response,
+            long ttl
     ) throws JsonProcessingException {
 
-        IdempotencyRecord record =
-                repository.find(userId, key)
-                        .orElseThrow();
+        IdempotencyRecord record = repository.find(userId, key)
+                .orElseThrow();
 
-        ResponseEntity<?> entity =
-                (ResponseEntity<?>) response;
-
-        record.setStatus(
-                IdempotencyStatus.COMPLETED
-        );
-
-        record.setHttpStatus(
-                entity.getStatusCode().value()
-        );
-
-        record.setContentType(
-                MediaType.APPLICATION_JSON_VALUE
-        );
-
+        ResponseEntity<?> entity = (ResponseEntity<?>) response;
+        record.setStatus(IdempotencyStatus.COMPLETED);
+        record.setHttpStatus(entity.getStatusCode().value());
+        record.setContentType(MediaType.APPLICATION_JSON_VALUE);
         record.setResponseBody(
-
                 objectMapper.writeValueAsString(
-
                         entity.getBody()
-
                 )
-
         );
-
-        record.setCompletedAt(
-                LocalDateTime.now()
-        );
+        record.setCompletedAt(LocalDateTime.now());
 
         repository.save(
-
                 userId,
-
                 key,
-
                 record,
-
-                Duration.ofMinutes(
-                        properties.getExpirationMinutes()
-                )
-
+                Duration.ofMinutes(ttl)
         );
-
     }
 
     public void fail(
@@ -166,77 +136,44 @@ public class IdempotencyService {
             String key
     ) {
 
-        IdempotencyRecord record =
-                repository.find(userId, key)
-                        .orElseThrow();
+        IdempotencyRecord record = repository.find(userId, key)
+                .orElseThrow();
 
         return ResponseEntity
-
-                .status(
-                        record.getHttpStatus()
-                )
-
-                .contentType(
-                        MediaType.parseMediaType(
+                .status(record.getHttpStatus())
+                .contentType(MediaType.parseMediaType(
                                 record.getContentType()
                         )
                 )
-
-                .body(
-                        record.getResponseBody()
-                );
-
+                .body(record.getResponseBody());
     }
 
     private void createProcessingRecord(
             Long userId,
             String key,
-            String fingerprint
+            String fingerprint,
+            long ttl
     ) {
-        IdempotencyRecord record =
-                IdempotencyRecord.builder()
-                        .userId(userId)
-                        .key(key)
-                        .fingerprint(fingerprint)
-                        .status(IdempotencyStatus.PROCESSING)
-                        .createdAt(LocalDateTime.now())
-                        .expiresAt(LocalDateTime.now()
-                                .plusMinutes(
-                                        properties.getExpirationMinutes()
-                                )
+        IdempotencyRecord record = IdempotencyRecord.builder()
+                .userId(userId)
+                .key(key)
+                .fingerprint(fingerprint)
+                .status(IdempotencyStatus.PROCESSING)
+                .createdAt(LocalDateTime.now())
+                .expiresAt(
+                        LocalDateTime.now()
+                        .plusMinutes(
+                                ttl
                         )
-                        .build();
+                )
+                .build();
 
         repository.save(
                 userId,
                 key,
                 record,
-                Duration.ofMinutes(
-                        properties.getExpirationMinutes()
-                )
+                Duration.ofMinutes(ttl)
         );
-    }
-
-    private void validateFingerprint(
-            IdempotencyRecord record,
-            String currentFingerprint
-    ) {
-        if (!record.getFingerprint().equals(currentFingerprint)) {
-            throw new IdempotencyConflictException(
-                    "Idempotency-Key has already been used with another request."
-            );
-
-        }
-
-    }
-
-    public int getCachedStatus(
-            Long userId,
-            String key
-    ) {
-        return repository.find(userId, key)
-                .orElseThrow()
-                .getHttpStatus();
     }
 
 }

@@ -17,8 +17,7 @@ public class IdempotencyRedisConfig {
     public RedisTemplate<String, IdempotencyRecord> idempotencyRedisTemplate(
             RedisConnectionFactory connectionFactory
     ) {
-        RedisTemplate<String, IdempotencyRecord> template =
-                new RedisTemplate<>();
+        RedisTemplate<String, IdempotencyRecord> template = new RedisTemplate<>();
 
         template.setConnectionFactory(connectionFactory);
 
@@ -32,15 +31,10 @@ public class IdempotencyRedisConfig {
                 new Jackson2JsonRedisSerializer<>(mapper, IdempotencyRecord.class);
 
         template.setKeySerializer(new StringRedisSerializer());
-
         template.setHashKeySerializer(new StringRedisSerializer());
-
         template.setValueSerializer(serializer);
-
         template.setHashValueSerializer(serializer);
-
         template.afterPropertiesSet();
-
         return template;
 
     }

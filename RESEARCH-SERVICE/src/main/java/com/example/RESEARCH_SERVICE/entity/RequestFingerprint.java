@@ -11,5 +11,4 @@ public class RequestFingerprint {
     private String endpoint;
     private String httpMethod;
     private String requestBody;
-
 }

@@ -41,24 +41,4 @@ public class IdempotencyRepository {
         redisTemplate.delete(IdempotencyKeyUtil.buildKey(userId, key));
     }
 
-    public boolean exists(
-            Long userId,
-            String key
-    ) {
-
-        return Boolean.TRUE.equals(
-
-                redisTemplate.hasKey(
-
-                        IdempotencyKeyUtil.buildKey(
-                                userId,
-                                key
-                        )
-
-                )
-
-        );
-
-    }
-
 }
