@@ -28,17 +28,11 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
     )
             throws ServletException, IOException {
 
-        String userId = request.getHeader(
-                GatewayHeaders.USER_ID
-        );
+        String userId = request.getHeader(GatewayHeaders.USER_ID);
 
-        String email = request.getHeader(
-                GatewayHeaders.USER_EMAIL
-        );
+        String email = request.getHeader(GatewayHeaders.USER_EMAIL);
 
-        String role = request.getHeader(
-                GatewayHeaders.USER_ROLE
-        );
+        String role = request.getHeader(GatewayHeaders.USER_ROLE);
 
         if (userId != null && email != null && role != null) {
 

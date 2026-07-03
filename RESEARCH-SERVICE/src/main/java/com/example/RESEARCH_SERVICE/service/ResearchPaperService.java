@@ -797,4 +797,22 @@ public class ResearchPaperService {
 
         return mapper.toResponse(saved);
     }
+
+    @Transactional(readOnly = true)
+    public PaperSummaryResponse getPaperSummary(
+            Long paperId
+    ) {
+        ResearchPaper paper = getPaperEntity(paperId);
+
+        return PaperSummaryResponse.builder()
+                .id(paper.getId())
+                .authorId(paper.getAuthorId())
+                .title(paper.getTitle())
+                .status(paper.getStatus())
+                .revisionNumber(
+                        paper.getVersionNumber()
+                )
+                .build();
+
+    }
 }

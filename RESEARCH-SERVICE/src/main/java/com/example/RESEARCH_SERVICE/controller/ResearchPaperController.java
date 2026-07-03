@@ -417,4 +417,23 @@ public class ResearchPaperController {
         );
     }
 
+    @GetMapping("/{paperId}/summary")
+    public ResponseEntity<ApiResponse<PaperSummaryResponse>> getPaperSummary(
+            @PathVariable Long paperId
+    ) {
+        PaperSummaryResponse response = paperService.getPaperSummary(paperId);
+
+        return ResponseEntity.ok(
+                ApiResponse.<PaperSummaryResponse>builder()
+                        .success(true)
+                        .message("Paper Summary successfully Fetched.")
+                        .status(HttpStatus.OK.value())
+                        .data(response)
+                        .path(null)
+                        .traceId(null)
+                        .timestamp(null)
+                        .build()
+        );
+    }
+
 }
