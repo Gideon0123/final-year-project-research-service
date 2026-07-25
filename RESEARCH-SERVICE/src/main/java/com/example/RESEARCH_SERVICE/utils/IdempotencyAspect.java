@@ -15,6 +15,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
 import java.util.List;
@@ -94,10 +95,22 @@ public class IdempotencyAspect {
     private RequestFingerprint buildFingerprint(
             ProceedingJoinPoint joinPoint
     ) throws JsonProcessingException {
+
         List<Object> args = Arrays.stream(joinPoint.getArgs())
                 .filter(arg -> !(arg instanceof HttpServletRequest))
                 .filter(arg -> !(arg instanceof HttpServletResponse))
                 .filter(arg -> !(arg instanceof BindingResult))
+                .map(arg -> {
+                    if (arg instanceof MultipartFile file) {
+                        return new FileFingerprint(
+                                file.getOriginalFilename(),
+                                file.getSize(),
+                                file.getContentType()
+                        );
+                    }
+
+                    return arg;
+                })
                 .toList();
 
         return RequestFingerprint.builder()
@@ -107,4 +120,10 @@ public class IdempotencyAspect {
                 .requestBody(objectMapper.writeValueAsString(args))
                 .build();
     }
+
+    private record FileFingerprint(
+            String originalFilename,
+            long size,
+            String contentType
+    ) {}
 }
