@@ -3,7 +3,7 @@ package com.example.RESEARCH_SERVICE.dto;
 import lombok.Builder;
 
 @Builder
-public record UserProfileResponse(
+public record UserSummaryResponse(
 
         Long id,
         String fullName,

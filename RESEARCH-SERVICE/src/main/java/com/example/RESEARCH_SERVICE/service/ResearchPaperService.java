@@ -46,7 +46,7 @@ public class ResearchPaperService {
     private final ResearchAuditLogger auditLogger;
     private final ResearchEventPublisher eventPublisher;
     private final FileStorageService fileStorageService;
-//    private final UserServiceClient userServiceClient;
+    private final UserLookupService userLookupService;
 
     private ResearchPaper getPaperEntity(
             Long paperId
@@ -243,9 +243,9 @@ public class ResearchPaperService {
 
         CurrentUser user = currentUserService.getCurrentUser();
 
-//        UserProfileResponse profile =  userServiceClient.getUserProfile(
-//                user.getId()
-//        );
+        UserSummaryResponse profile = userLookupService.getUserProfile(
+                user.getId()
+        );
 
         if (paperRepository.existsByTitleIgnoreCase(request.getTitle())) {
             throw new DuplicateResourceException("Research paper title already exists");
@@ -261,17 +261,14 @@ public class ResearchPaperService {
                         .keywords(request.getKeywords())
                         .category(category)
                         .visibility(request.getVisibility())
-                        .authorId(user.getId())
-                        .authorEmail(user.getEmail())
 
-                        /*
-                         TODO:
-                         Replace with User Service profile lookup.
-                        */
-                        .authorName(user.getEmail())
-                        .institution("UNKNOWN")
-                        .faculty("UNKNOWN")
-                        .department("UNKNOWN")
+                        .authorId(profile.id())
+                        .authorName(profile.fullName())
+                        .authorEmail(profile.email())
+                        .institution(profile.institution())
+                        .faculty(profile.faculty())
+                        .department(profile.department())
+
                         .status(ResearchStatus.DRAFT)
                         .versionNumber(1)
                         .viewCount(0L)
@@ -282,7 +279,6 @@ public class ResearchPaperService {
                         .reviewAssignedAt(null)
                         .reviewCompletedAt(null)
                         .build();
-
         ResearchPaper saved = paperRepository.save(paper);
 
         auditLogger.logPaperCreated(saved, user.getId());
