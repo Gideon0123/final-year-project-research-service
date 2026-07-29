@@ -436,4 +436,19 @@ public class ResearchPaperController {
         );
     }
 
+    @PatchMapping("/internal/{paperId}/status")
+    public ResponseEntity<Void> updateStatus(
+            @PathVariable Long paperId,
+            @RequestBody ResearchStatusUpdateRequest request
+    ) {
+
+        paperService.updateStatus(
+                paperId,
+                request
+        );
+
+        return ResponseEntity.ok().build();
+
+    }
+
 }

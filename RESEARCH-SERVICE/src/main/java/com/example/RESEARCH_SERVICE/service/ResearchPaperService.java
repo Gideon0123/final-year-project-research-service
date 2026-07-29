@@ -811,4 +811,16 @@ public class ResearchPaperService {
                 .build();
 
     }
+
+    @Transactional
+    public void updateStatus(
+            Long paperId,
+            ResearchStatusUpdateRequest request
+    ) {
+        ResearchPaper paper = getPaperEntity(paperId);
+        paper.setStatus(request.getStatus());
+
+        paperRepository.save(paper);
+
+    }
 }
