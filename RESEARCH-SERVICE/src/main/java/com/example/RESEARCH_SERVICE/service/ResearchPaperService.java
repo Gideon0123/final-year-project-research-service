@@ -803,6 +803,7 @@ public class ResearchPaperService {
         return PaperSummaryResponse.builder()
                 .id(paper.getId())
                 .authorId(paper.getAuthorId())
+                .authorEmail(paper.getAuthorEmail())
                 .title(paper.getTitle())
                 .status(paper.getStatus())
                 .revisionNumber(

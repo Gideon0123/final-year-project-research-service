@@ -14,6 +14,8 @@ public class PaperSummaryResponse {
 
     private Long authorId;
 
+    private String authorEmail;
+
     private String title;
 
     private ResearchStatus status;
