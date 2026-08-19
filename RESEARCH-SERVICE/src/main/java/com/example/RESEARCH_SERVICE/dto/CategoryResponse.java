@@ -1,12 +1,15 @@
 package com.example.RESEARCH_SERVICE.dto;
 
-import lombok.Builder;
+import lombok.*;
 
+@Getter
+@Setter
 @Builder
-public record CategoryResponse(
+@NoArgsConstructor
+@AllArgsConstructor
+public class CategoryResponse {
 
-        Long id,
-        String name,
-        String description
-) {
+    private Long id;
+    private String name;
+    private String description;
 }

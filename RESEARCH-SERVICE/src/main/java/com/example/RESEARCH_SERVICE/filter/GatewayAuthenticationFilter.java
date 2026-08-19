@@ -25,8 +25,7 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain
-    )
-            throws ServletException, IOException {
+    ) throws ServletException, IOException {
 
         String userId = request.getHeader(GatewayHeaders.USER_ID);
 

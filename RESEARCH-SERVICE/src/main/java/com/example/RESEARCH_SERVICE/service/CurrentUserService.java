@@ -15,11 +15,8 @@ public class CurrentUserService {
         Authentication authentication = SecurityContextHolder.getContext()
                 .getAuthentication();
 
-        if (
-                authentication == null ||
-                        !(authentication.getPrincipal()
-                                instanceof UserPrincipal principal)
-        ) {
+        if (authentication == null || !(authentication.getPrincipal()
+                instanceof UserPrincipal principal)) {
             throw new AccessDeniedException("Not authenticated");
         }
 

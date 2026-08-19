@@ -27,8 +27,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http
-    )
-            throws Exception {
+    ) throws Exception {
 
         return http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -40,12 +39,10 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(
                         auth -> auth
-
                                 .requestMatchers(
                                         "/actuator/**"
                                 )
                                 .permitAll()
-
                                 .anyRequest()
                                 .authenticated()
                 )

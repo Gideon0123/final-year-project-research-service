@@ -82,7 +82,6 @@ public class ResearchCategoryService {
     ) {
         ResearchCategory category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
-        System.out.println("Coming From DataBase 2");
 
         return mapper.toResponse(category);
     }
