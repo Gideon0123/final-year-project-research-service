@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/research/papers")
@@ -501,6 +502,28 @@ public class ResearchPaperController {
                         .message("Research file metadata fetched successfully")
                         .status(HttpStatus.OK.value())
                         .data(response)
+                        .errors(null)
+                        .path(request.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+    @GetMapping("/published")
+    public ResponseEntity<
+            ApiResponse<List<ResearchCandidateResponse>>> getPublishedResearches(
+            HttpServletRequest request
+    ) {
+        List<ResearchCandidateResponse> candidates =
+                researchFileService.getPublishedCandidates();
+
+        return ResponseEntity.ok(
+                ApiResponse.<List<ResearchCandidateResponse>>builder()
+                        .success(true)
+                        .message("Published research papers fetched successfully")
+                        .status(HttpStatus.OK.value())
+                        .data(candidates)
                         .errors(null)
                         .path(request.getRequestURI())
                         .traceId(TraceIdUtil.generate())

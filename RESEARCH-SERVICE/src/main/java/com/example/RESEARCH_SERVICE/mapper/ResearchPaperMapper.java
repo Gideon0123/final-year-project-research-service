@@ -1,5 +1,6 @@
 package com.example.RESEARCH_SERVICE.mapper;
 
+import com.example.RESEARCH_SERVICE.dto.ResearchCandidateResponse;
 import com.example.RESEARCH_SERVICE.dto.ResearchPaperResponse;
 import com.example.RESEARCH_SERVICE.dto.ResearchPaperSummaryResponse;
 import com.example.RESEARCH_SERVICE.entity.ResearchPaper;
@@ -20,4 +21,8 @@ public interface ResearchPaperMapper {
             source = "category.name"
     )
     ResearchPaperSummaryResponse toSummary(ResearchPaper paper);
+
+    ResearchCandidateResponse toCandidateResponse(
+            ResearchPaper paper
+    );
 }

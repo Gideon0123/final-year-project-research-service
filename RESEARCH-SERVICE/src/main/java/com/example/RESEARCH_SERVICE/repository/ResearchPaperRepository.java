@@ -15,6 +15,12 @@ import java.util.Optional;
 public interface ResearchPaperRepository extends JpaRepository<ResearchPaper, Long>,
         JpaSpecificationExecutor<ResearchPaper> {
 
+//    Page<ResearchPaper> findByStatusAndVisibility(
+//            ResearchStatus status,
+//            ResearchVisibility visibility,
+//            Pageable pageable
+//    );
+
     Page<ResearchPaper> findByStatus(ResearchStatus status, Pageable pageable);
 
     Page<ResearchPaper> findByCategoryId(Long categoryId, Pageable pageable);

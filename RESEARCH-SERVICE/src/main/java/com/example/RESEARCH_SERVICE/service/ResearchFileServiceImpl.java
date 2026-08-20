@@ -1,16 +1,22 @@
 package com.example.RESEARCH_SERVICE.service;
 
+import com.example.RESEARCH_SERVICE.dto.ResearchCandidateResponse;
 import com.example.RESEARCH_SERVICE.dto.ResearchFileResponse;
 import com.example.RESEARCH_SERVICE.entity.ResearchPaper;
+import com.example.RESEARCH_SERVICE.enums.ResearchStatus;
+import com.example.RESEARCH_SERVICE.enums.ResearchVisibility;
 import com.example.RESEARCH_SERVICE.exception.FileStorageException;
 import com.example.RESEARCH_SERVICE.exception.ResourceNotFoundException;
+import com.example.RESEARCH_SERVICE.mapper.ResearchPaperMapper;
 import com.example.RESEARCH_SERVICE.repository.ResearchPaperRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +25,7 @@ public class ResearchFileServiceImpl implements ResearchFileService {
 
     private final ResearchPaperRepository paperRepository;
     private final FileStorageService fileStorageService;
+    private final ResearchPaperMapper mapper;
 
     private ResearchPaper getPaperEntity(
             Long paperId
@@ -77,6 +84,20 @@ public class ResearchFileServiceImpl implements ResearchFileService {
         return fileStorageService.downloadFile(
                 paper.getStorageKey()
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ResearchCandidateResponse> getPublishedCandidates() {
+
+        return paperRepository.findByStatusAndVisibility(
+                        ResearchStatus.PUBLISHED,
+                        ResearchVisibility.PUBLIC,
+                        Pageable.unpaged()
+                )
+                .stream()
+                .map(mapper::toCandidateResponse)
+                .toList();
     }
 
 
