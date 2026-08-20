@@ -2,6 +2,7 @@ package com.example.RESEARCH_SERVICE.controller;
 
 import com.example.RESEARCH_SERVICE.dto.*;
 import com.example.RESEARCH_SERVICE.payload.PagedResponse;
+import com.example.RESEARCH_SERVICE.service.ResearchFileService;
 import com.example.RESEARCH_SERVICE.service.ResearchPaperService;
 import com.example.RESEARCH_SERVICE.utils.Idempotent;
 import com.example.RESEARCH_SERVICE.utils.TraceIdUtil;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,6 +23,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
 
 @RestController
@@ -30,6 +33,7 @@ import java.time.LocalDateTime;
 public class ResearchPaperController {
 
     private final ResearchPaperService paperService;
+    private final ResearchFileService researchFileService;
 
     @Idempotent(ttlMinutes = 10)
     @PostMapping
@@ -448,7 +452,61 @@ public class ResearchPaperController {
         );
 
         return ResponseEntity.ok().build();
+    }
 
+    @GetMapping("/{paperId}/file")
+    public ResponseEntity<Resource> downloadResearchFile(
+            @PathVariable Long paperId
+    ) {
+        InputStream inputStream = researchFileService.downloadResearchFile(
+                paperId
+        );
+
+        ResearchFileResponse metadata = researchFileService.getResearchFileMetadata(
+                paperId
+        );
+
+        InputStreamResource resource = new InputStreamResource(inputStream);
+
+        return ResponseEntity.ok()
+                .contentType(
+                        MediaType.parseMediaType(
+                                metadata.contentType()
+                        )
+                )
+                .contentLength(
+                        metadata.fileSize()
+                )
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" +
+                                metadata.fileName() +
+                                "\""
+                )
+                .body(resource);
+    }
+
+    @GetMapping("/{paperId}/file/metadata")
+    public ResponseEntity<ApiResponse<ResearchFileResponse>> getResearchFileMetadata(
+            @PathVariable Long paperId,
+            HttpServletRequest request
+    ) {
+        ResearchFileResponse response = researchFileService.getResearchFileMetadata(
+                paperId
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.<ResearchFileResponse>builder()
+                        .success(true)
+                        .message("Research file metadata fetched successfully")
+                        .status(HttpStatus.OK.value())
+                        .data(response)
+                        .errors(null)
+                        .path(request.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
     }
 
 }
