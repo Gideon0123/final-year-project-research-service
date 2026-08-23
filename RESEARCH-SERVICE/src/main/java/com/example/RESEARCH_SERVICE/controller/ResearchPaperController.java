@@ -124,8 +124,7 @@ public class ResearchPaperController {
     }
 
     @GetMapping("/my-papers")
-    public ResponseEntity<
-            ApiResponse<PagedResponse<ResearchPaperSummaryResponse>>> getMyPapers(
+    public ResponseEntity<ApiResponse<PagedResponse<ResearchPaperSummaryResponse>>> getMyPapers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -155,6 +154,49 @@ public class ResearchPaperController {
                 ApiResponse.<PagedResponse<ResearchPaperSummaryResponse>>builder()
                         .success(true)
                         .message("My Research Papers fetched successfully")
+                        .status(HttpStatus.OK.value())
+                        .data(response)
+                        .errors(null)
+                        .path(request.getRequestURI())
+                        .traceId(TraceIdUtil.generate())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+    @GetMapping("/author/{authorId}")
+    public ResponseEntity<ApiResponse<PagedResponse<ResearchPaperResponse>>> papersByAuthor(
+            @PathVariable Long authorId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection,
+            HttpServletRequest request
+    ) {
+        int adjustedPage = Math.max(page - 1, 0);
+        PagedResponse<ResearchPaperResponse> papers = paperService.getPapersByAuthor(
+                authorId,
+                adjustedPage,
+                size,
+                sortBy,
+                sortDirection
+        );
+
+        PagedResponse<ResearchPaperResponse> response =
+                PagedResponse.<ResearchPaperResponse>builder()
+                        .content(papers.getContent())
+                        .size(papers.getSize())
+                        .page(papers.getPage())
+                        .first(papers.isFirst())
+                        .last(papers.isLast())
+                        .totalElements(papers.getTotalElements())
+                        .totalPages(papers.getTotalPages())
+                        .build();
+
+        return ResponseEntity.ok(
+                ApiResponse.<PagedResponse<ResearchPaperResponse>>builder()
+                        .success(true)
+                        .message("Research Papers fetched successfully")
                         .status(HttpStatus.OK.value())
                         .data(response)
                         .errors(null)
@@ -511,8 +553,7 @@ public class ResearchPaperController {
     }
 
     @GetMapping("/published")
-    public ResponseEntity<
-            ApiResponse<List<ResearchCandidateResponse>>> getPublishedResearches(
+    public ResponseEntity<ApiResponse<List<ResearchCandidateResponse>>> getPublishedResearches(
             HttpServletRequest request
     ) {
         List<ResearchCandidateResponse> candidates =

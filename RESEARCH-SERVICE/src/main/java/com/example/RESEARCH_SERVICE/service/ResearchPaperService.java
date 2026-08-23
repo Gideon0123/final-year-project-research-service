@@ -346,6 +346,22 @@ public class ResearchPaperService {
         return new PagedResponse<>(papers);
     }
 
+    @Transactional(readOnly = true)
+    public PagedResponse<ResearchPaperResponse> getPapersByAuthor(
+            Long authorId,
+            int page,
+            int size,
+            String sortBy,
+            String sortDirection
+    ) {
+        Pageable pageable = buildPageable(page, size, sortBy, sortDirection);
+        Page<ResearchPaperResponse> papers = paperRepository.findByAuthorId(
+                authorId,
+                pageable
+        ).map(mapper::toResponse);
+        return new PagedResponse<>(papers);
+    }
+
     @Caching(
             evict = {
                     @CacheEvict(
