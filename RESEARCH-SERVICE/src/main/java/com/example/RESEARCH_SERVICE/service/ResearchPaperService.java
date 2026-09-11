@@ -586,9 +586,9 @@ public class ResearchPaperService {
     ) {
         ResearchPaper paper = getPaperEntity(paperId);
 
-        if (paper.getReviewerId() == null) {
-            throw new InvalidOperationException("No reviewer assigned");
-        }
+//        if (paper.getReviewerId() == null) {
+//            throw new InvalidOperationException("No reviewer assigned");
+//        }
 
         if (paper.getStatus() != ResearchStatus.UNDER_REVIEW) {
             throw new InvalidOperationException("Paper is not under review");
@@ -781,6 +781,7 @@ public class ResearchPaperService {
                     )
             }
     )
+
     @Transactional
     public ResearchPaperResponse deleteUploadedFile(
             Long paperId
@@ -838,6 +839,5 @@ public class ResearchPaperService {
         paper.setStatus(request.getStatus());
 
         paperRepository.save(paper);
-
     }
 }
