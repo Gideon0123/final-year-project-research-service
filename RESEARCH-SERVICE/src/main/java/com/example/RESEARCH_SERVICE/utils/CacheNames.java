@@ -5,11 +5,9 @@ public final class CacheNames {
     private CacheNames() {
     }
 
-    public static final String RESEARCH_PAPERS =
-            "researchPapers";
+    public static final String RESEARCH_PAPERS = "researchPapers";
 
-    public static final String MY_RESEARCH_PAPERS =
-            "myResearchPapers";
+    public static final String MY_RESEARCH_PAPERS = "myResearchPapers";
 
     public static final String RESEARCH_CATEGORY = "research-category";
 

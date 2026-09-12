@@ -445,12 +445,9 @@ public class ResearchPaperService {
         validateOwnership(paper);
         validateEditableStatus(paper);
 
-        /*
-             TODO:
-             if (paper.getStorageKey() != null) {
-                 fileStorageService.delete(...)
-            }
-        */
+        if (paper.getStorageKey() != null) {
+            fileStorageService.deleteFile(paper.getStorageKey());
+        }
 
         paperRepository.delete(paper);
         auditLogger.logPaperDeleted(
@@ -586,9 +583,9 @@ public class ResearchPaperService {
     ) {
         ResearchPaper paper = getPaperEntity(paperId);
 
-//        if (paper.getReviewerId() == null) {
-//            throw new InvalidOperationException("No reviewer assigned");
-//        }
+        if (paper.getReviewerId() == null) {
+            throw new InvalidOperationException("No reviewer assigned");
+        }
 
         if (paper.getStatus() != ResearchStatus.UNDER_REVIEW) {
             throw new InvalidOperationException("Paper is not under review");
@@ -638,9 +635,7 @@ public class ResearchPaperService {
             );
         }
 
-        paper.setStatus(
-                ResearchStatus.PUBLISHED
-        );
+        paper.setStatus(ResearchStatus.PUBLISHED);
 
         paper.setPublishedAt(LocalDateTime.now());
 
@@ -830,6 +825,22 @@ public class ResearchPaperService {
 
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.MY_RESEARCH_PAPERS,
+                            allEntries = true
+                    ),
+                    @CacheEvict(
+                            cacheNames = CacheNames.RESEARCH_PAPER_SEARCH,
+                            allEntries = true
+                    )
+            }
+    )
     @Transactional
     public void updateStatus(
             Long paperId,
